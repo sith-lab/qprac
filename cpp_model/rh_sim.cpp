@@ -18,24 +18,32 @@ private:
 
 public:
     DRAM(int numRows, int aboAct, int k, int aboDelay)
-        : num_rows(numRows), ABO_ACT(aboAct), K(k), ABO_Delay(aboDelay), 
-          alert_flag(0), acts_since_alert(0), activations_serviced(0) {
+      : num_rows(numRows), ABO_ACT(aboAct), K(k), ABO_Delay(aboDelay), ALERT_th(alert_th), 
+	alert_flag(0), acts_since_alert(aboDelay), activations_serviced(0) {
         row_activation_counters.resize(num_rows, 0);
     }
 
     void activate(int rowID) {
         row_activation_counters[rowID]++;
-        if (row_activation_counters[rowID] > ALERT_th) {
+
+	// Set Alert Flag
+        if ( (row_activation_counters[rowID] >= ALERT_th) \
+	     && (acts_since_ALERT >= ABO_Delay)
+	     ) {
             alert_flag = 1;
         }
+	
         activations_serviced++;
+	acts_since_last_ALERT++;
     }
 
     bool checkALERT() {
         return alert_flag;
     }
 
-    void RFM() {
+  // TODO: Issue K Aggr Mitigations.
+  // TODO: Optimize to use heap/priority queue.
+    void RFM(int k) {     
         std::vector<int> row_ids(num_rows);
         for (int i = 0; i < num_rows; ++i) {
             row_ids[i] = i;

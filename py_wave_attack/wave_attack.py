@@ -55,7 +55,9 @@ for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
     it_pointer %= len(pq)
 
     # 3. Runs for loop until List is empty
+    u = 0
     while len(pq) > 0:
+        u += 1
         # Continue for ABO_ACT
         for _ in range(ABO_ACT):
             #print(f"ABO_ACT: {it_list[it_pointer]}")
@@ -106,6 +108,6 @@ for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
     heapq.heapify(record_list)
     if max_config == None or max_config[0] < record_list[0].tup[0]:
         max_config = (record_list[0].tup[0], wave_len)
-    print((record_list[0].tup[0], wave_len, total_time))
-print(max_config)
+    print(record_list[0].tup[0], wave_len, u, total_time)
+print(max_config[0], max_config[1])
 

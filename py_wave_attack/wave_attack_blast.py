@@ -110,7 +110,6 @@ for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
     
     # Minus tREFi period where the wave rows will be refreshed (avoid this period)
     total_time += 3905 * (wave_len // 8)
-    print(total_time)
     heapq.heapify(pq)
     # Setup.
     # Starting from row 2, activate four apart.
@@ -126,7 +125,7 @@ for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
         u+=1
         # Continue for ABO_ACT
         for _ in range(ABO_ACT):
-            # print(f"ABO_ACT: {it_list[it_pointer]}")
+            print(f"ABO_ACT: {it_list[it_pointer]}")
             inc_pq_elem(pq, it_list[it_pointer], time_step)
             time_step += 1
             if len(it_list) > ABO_DELAY:
@@ -142,7 +141,7 @@ for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
             
             # REF, remove from List the highest id and add it to the record
             ref_elem = heapq.heappop(pq)
-            # print(f"REF: {ref_tup[1]}")
+            print(f"REF: {ref_elem}")
             if ref_elem.id not in record_map or ref_elem.count > record_map[ref_elem.id]:
                 record_map[ref_elem.id] = ref_elem.count
             pq.append(MaxElem((0, ref_elem.id, time_step)))
@@ -170,6 +169,16 @@ for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
                 continue
         
         total_time = inc_time(total_time, TRFM * ABO_DELAY)
+        if len(it_list) <= ABO_DELAY:
+            max_it = 0
+            max_val = 0
+            for it in range(len(it_list)):
+                for elem in pq:
+                    if elem.id == it_list[it] and elem.count > max_val:
+                        max_it = it
+                        max_val = elem.count
+            it_pointer = max_it
+
         # if (total_time > TREFW):
         #     dump_pq(pq, record_map)
         #     break
@@ -177,6 +186,7 @@ for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
         # Continue for ABO_Delay
         if len(it_list) > 0:
             for _ in range(ABO_DELAY):
+                print(f"ABO_DELAY: {it_list[it_pointer]}")
                 inc_pq_elem(pq, it_list[it_pointer], time_step)
                 time_step += 1
                 if len(it_list) > ABO_DELAY:
@@ -189,5 +199,5 @@ for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
     key_max = max(zip(record_map.values(), record_map.keys()))[1]
     if max_config == None or max_config[0] < record_map[key_max]:
         max_config = (record_map[key_max], wave_len, total_time)
-    print(record_map[key_max], wave_len, total_time, u)
+    print(record_map[key_max], wave_len)
 print(max_config[0], max_config[1])

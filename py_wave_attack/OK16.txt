@@ -1,0 +1,17 @@
+1995 285 1992
+Row: 852, Row Calc: 850
+854 122 850
+Row: 364, Row Calc: 362
+364 52 362
+Row: 156, Row Calc: 154
+154 22 154
+Row: 68, Row Calc: 66
+70 10 66
+Row: 28, Row Calc: 26
+28 4 26
+Row: 12, Row Calc: 10
+14 2 10
+EXTRA
+Row: 4, Row Calc: 2
+17 1996
+17 1996

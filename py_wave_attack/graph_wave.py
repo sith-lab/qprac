@@ -4,6 +4,7 @@ import sys
 import mplcursors
 import pickle
 from math import sqrt
+import matplotlib.patheffects as pe
 
 config_count = int(sys.argv[2])
 N_count = int(sys.argv[3])
@@ -16,29 +17,42 @@ with open(sys.argv[1]) as f:
         for n in range(N_count):
             line = f.readline()
             count, _ = line.split(" ")
-            configList[config][0].append(int(count))
+            configList[config][0].append(int(count)-1)
         line = f.readline()
         count, x = line.split(" ")
-        configList[config][1] = (int(x), int(count))
+        configList[config][1] = (int(x), int(count)-1)
 
 fig, ax = plt.subplots()
-x = np.arange(1, N_count + 1, 1, dtype=int)
-ax.set_yticks(np.arange(0, 100, step=1))
-ax.set_xticks(np.arange(x[0], x[-1] + 2, step=100))
+
+x = np.arange(4, N_count + 1, 1, dtype=int)
+ax.set_yticks(np.arange(0, 100, step=5))
+ax.set_xticks([4] + [i * 10000 for i in range(1, 7)])
+ax.tick_params(axis='both', which='major', labelsize=16)
+ax.tick_params(axis='both', which='minor', labelsize=16)
 ax.grid(axis="y")
 xticks = ax.get_xticks()
 yticks = ax.get_yticks()
 
 
-
 for i in range(config_count):
-    plt.plot(x, configList[i][0])
+    plt.plot(x, configList[i][0][3:], lw=3, path_effects=[pe.SimpleLineShadow(shadow_color='g'), pe.Normal()])
 
-fig.set_size_inches(10, 6)
+fig.set_size_inches(10, 3)
 
-plt.legend([f"PRAC-{2 ** i} MAX=(Wave_Len: {configList[i][1][0]}, Disturbance: {configList[i][1][1]})" for i in range(config_count)], loc='lower right')
-plt.xlabel('Wave Length', fontsize=16)
-plt.ylabel('Max Disturbance', fontsize=16)
-plt.title('Maximum Disturbance for Wave Attack Patterns\nBlast Radius = 2, N_BO=1', fontsize=20)
-# pickle.dump(fig, open('Wave_Graph.pickle', 'wb'))
+        # f"PRAC-{2 ** i} MAX=(Wave_Len: {configList[i][1][0]}, Disturbance: {configList[i][1][1]})"
+        # for i in range(config_count)
+leg = plt.legend(
+    [
+    f"PRAC-{2 ** i}" for i in range(config_count)
+    ],
+    loc="lower right",
+    fontsize=16,
+    ncols=3
+    )
+for line in leg.get_lines():
+    line.set_linewidth(4.0)
+plt.xlabel('Starting Row Pool, $R_1$', fontsize=22)
+plt.ylabel("$N_{online}$", fontsize=22)
+#plt.title('Maximum Disturbance for Wave Attack Pattern\nBlast Radius = 2, N_BO=1', fontsize=20)
+plt.savefig("N_Online_VS_PRAC_N.pdf", transparent=True, format="pdf", bbox_inches="tight")
 plt.show()

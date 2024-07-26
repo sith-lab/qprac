@@ -5,7 +5,7 @@ import heapq
 TREFW = 32000000
 TRC = 52
 TRFC = 295
-TRFM = 350
+TRFM = 350 + TRC
 REF = 8192
 TREFI = 3905
 TABO_ACT = 180
@@ -29,29 +29,17 @@ def inc_time(time, val):
     return time
 
 for N_BO in [2 ** size for size in range(0, 9)]:
-    PIT = 0
-    if (IS_SPECIAL_WAVE):
-        PIT = int(sys.argv[7])
     for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
 
         # Generate the wave pattern, PQ {id, count} and List {id}
-        record_map = {}
-        it_pointer = 0
         total_time = 0
-        it_num = wave_len + 4 * PIT
-        if (IS_SPECIAL_WAVE):
-            for _ in range(wave_len + MAX_WAVE_LEN + 2 + 16 * PIT + 2):
-                    for _ in range(N_BO - 1):
-                        total_time = inc_time(total_time, TRC)
-        else:
-            it_num = wave_len
-            if (N_BO > 1):
-                for _ in range(wave_len):
-                    for _ in range(N_BO - 1):
-                        total_time = inc_time(total_time, TRC)
+        it_num = wave_len
+        if (N_BO > 1):
+            for _ in range(wave_len * (N_BO - 1)):
+                total_time = inc_time(total_time, TRC)
         
         # Minus tREFi period where the wave rows will be refreshed (avoid this period)
-        total_time += 3905 * (wave_len // 8)
+        # total_time += 3905 * (wave_len // 8)
         # Setup.
         # Starting from row 2, activate four apart.
 
@@ -60,10 +48,9 @@ for N_BO in [2 ** size for size in range(0, 9)]:
         while it_num > 0:
 
             total_time = inc_time(total_time, TABO_ACT)
-            for _ in range(ABO_DELAY):
-                it_num -= 1
-                if it_num == 0:
-                    break    
+            it_num -= ABO_DELAY
+            if it_num <= 0:
+                break    
             total_time = inc_time(total_time, TRFM * ABO_DELAY)
             total_time = inc_time(total_time, TRC * ABO_DELAY)
         

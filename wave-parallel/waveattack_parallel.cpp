@@ -336,8 +336,11 @@ class MemoryController {
                             int rowID = dram.RFM();
                             if(rowID >= 0)
                             {   
-                                activation_list[rowID] = -1;
-                                listsize++;
+                                if (activation_list[rowID] != -1)
+                                {
+                                    activation_list[rowID] = -1;
+                                    listsize++;
+                                }
                                 current_act = current_act + 7;
                             }
                             if(listsize >= rows){

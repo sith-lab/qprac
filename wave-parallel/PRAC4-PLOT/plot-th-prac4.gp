@@ -3,7 +3,7 @@ set terminal pdfcairo enhanced font 'Times,12' size 4in, 2.5in
 set output 'plot-th-prac4.pdf'
 
 # Set labels for axes
-set xlabel 'Row Pool Size (PRAC-2)' font 'Times,14'
+set xlabel 'Row Pool Size (PRAC-4)' font 'Times,14'
 set ylabel 'Maximum Observed Activation Count' font 'Times,14'
 
 # Set x-axis limit

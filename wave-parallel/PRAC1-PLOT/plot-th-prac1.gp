@@ -22,7 +22,7 @@ labels = "NBO1 NBO2 NBO4 NBO8 NBO16 NBO32 NBO64 NBO128 NBO256"
 highest_point(file) = sprintf('< awk ''{if ($1 != "GroupSize" && ($4 > max || ($4 == max && $1 > x))) {max=$4; x=$1}} END {print x, max}'' %s', file)
 
 # List of files to plot
-files = "~/PRAC/NBO1/NBO1-prac1.txt ~/PRAC/NBO2/NBO2-prac1.txt ~/PRAC/NBO4/NBO4-prac1.txt ~/PRAC/NBO8/NBO8-prac1.txt ~/PRAC/NBO16/NBO16-prac1.txt ~/PRAC/NBO32/NBO32-prac1.txt ~/PRAC/NBO64/NBO64-prac1.txt ~/PRAC/NBO128/NBO128-prac1.txt ~/PRAC/NBO256/NBO256-prac1.txt"
+# files = "~/PRAC/NBO1/NBO1-prac1.txt ~/PRAC/NBO2/NBO2-prac1.txt ~/PRAC/NBO4/NBO4-prac1.txt ~/PRAC/NBO8/NBO8-prac1.txt ~/PRAC/NBO16/NBO16-prac1.txt ~/PRAC/NBO32/NBO32-prac1.txt ~/PRAC/NBO64/NBO64-prac1.txt ~/PRAC/NBO128/NBO128-prac1.txt ~/PRAC/NBO256/NBO256-prac1.txt"
 
 # Colors for the plots
 colors = "blue red green magenta cyan orange brown violet pink yellow"

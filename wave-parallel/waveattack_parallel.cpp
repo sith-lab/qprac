@@ -237,8 +237,6 @@ class DRAM {
                     if(DENABLE)
                         std::cout << "ALERT-OFF\t" << "RFMID+2 : " << rowID+2 << "\t" << "COUNT : " << row_activation_counters[rowID+2] << std::endl;
                 }
-
-                acts_since_alert = 0;
                 return rowID;
             }
             else{
@@ -341,12 +339,12 @@ class MemoryController {
                                     activation_list[rowID] = -1;
                                     listsize++;
                                 }
-                                current_act = current_act + 7;
                             }
                             if(listsize >= rows){
                                 populateActivationList(rows);
                                 listsize = 0;
                             }
+                            current_act = current_act + 7;
                         }
                         current_act--;
                         dram.clear_alert();
@@ -380,7 +378,15 @@ class MemoryController {
                 dram.clear_alert();
                 dram.clear_pq();
                 dram.clear_rowcounters();
-                rows--;
+                if(rows > 100){
+                    rows--;
+                    while((rows%10) != 0){
+                        rows--;
+                    }
+                }
+                else{
+                    rows--;
+                }
             }
         }
 
@@ -412,8 +418,17 @@ class MemoryController {
             std::cout << "GroupSize\t" << " NBO\t" << " PRAC-CONFIG\t" << " MAXIMUM_ACT" << " NUM_ALERTS" << " ROWS_ABOVE_NBO" << std::endl;
 
             for(int i = 1; i < gsize; i++){
-                std::cout << i << "\t" << dram.getAlertTH() << "\t" << pracn << "\t" << shared_group_list[i] << "\t" << shared_alert_list[i] << "\t" << shared_uniquerow_list[i] << std::endl;
-            }   
+                if(i> 100){
+                    if(i%10 == 0){
+                        if(i < gsize){
+                            std::cout << i << "\t" << dram.getAlertTH() << "\t" << pracn << "\t" << shared_group_list[i] << "\t" << shared_alert_list[i] << "\t" << shared_uniquerow_list[i] << std::endl;
+                        }
+                    }
+                }
+                else{
+                    std::cout << i << "\t" << dram.getAlertTH() << "\t" << pracn << "\t" << shared_group_list[i] << "\t" << shared_alert_list[i] << "\t" << shared_uniquerow_list[i] << std::endl;
+                }
+            }
         }
 };
 

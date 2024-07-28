@@ -7,3 +7,10 @@ rm NBO32/NBO32*
 rm NBO64/NBO64*
 rm NBO128/NBO128*
 rm NBO256/NBO256*
+
+rm PRAC1-PLOT/*.pdf
+rm PRAC1-PRO-PLOT/*.pdf
+rm PRAC2-PLOT/*.pdf
+rm PRAC2-PRO-PLOT/*.pdf
+rm PRAC4-PLOT/*.pdf
+rm PRAC4-PRO-PLOT/*.pdf

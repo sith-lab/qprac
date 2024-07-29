@@ -59,7 +59,7 @@ ABO_DELAY = int(sys.argv[4])
 N_BO = int(sys.argv[5])
 IS_SPECIAL_WAVE = bool(sys.argv[6] == "True")
 
-MAX_SETUP = TREFW / TRC / (N_BO - 1) if N_BO - 1 > 0 else 64000 # We can setup at most this in a tREFw
+MAX_SETUP = TREFW / TRC / (N_BO - 1) if N_BO - 1 > 0 else 65537 # We can setup at most this in a tREFw
 max_config = None
 pq_full = []
 it_full = []

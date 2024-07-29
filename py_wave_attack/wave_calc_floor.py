@@ -13,14 +13,15 @@ for i in range(int(sys.argv[1]), int(sys.argv[2])):
     
     while math.floor(row_num) > ABO_DELAY:
         act += 1
+
+        # Due to row_num - 2 < 4 meaning ref is 0, we need to adjust the loss
+        # row should still be able to refresh 1 more time.
         if ABO_DELAY == 1 and row_num <= 5:
             act += 1
         ref_rows = math.floor(ABO_DELAY * ((row_num - 2) / (ABO_DELAY + ABO_ACT)))
         row_num -= ref_rows
         #print(total_ACT, num_ALERT, calc_row_num)
 
-        # Due to row_num - 2 < 4 meaning ref is 0, we need to adjust the loss
-        # row should still be able to refresh 1 more time.
         if ref_rows == 0:
             break
         #print(f"Row: {row_num}, Row Calc: {calc_row_num}")

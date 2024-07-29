@@ -7,7 +7,7 @@ def load_max_dist_map(filename):
     dist_map = [{},{},{}]
     with open(filename) as f:
         for rfm in range(0, 3):
-            for n in range(64000):
+            for n in range(65536):
                 line = f.readline().strip()
                 act, wave_len = line.split(" ")
                 dist_map[rfm][(2 ** rfm, int(wave_len))] = int(act)
@@ -43,10 +43,16 @@ values1 = [get_max_dist(max_dist_1, 1, len) for _, len in len_N1]
 values2 = [get_max_dist(max_dist_2, 2, len) for _, len in len_N2]
 values3 = [get_max_dist(max_dist_4, 4, len) for _, len in len_N4]
 for size in range(0, 9):
-    if (size == 8):
+    if (size == 0):
+        print("1:")
         print(values1[size])
         print(values2[size])
         print(values3[size])
+    if (size == 8):
+        print("8:")
+        print(values1[size] + 256)
+        print(values2[size] + 256)
+        print(values3[size] + 256)
     values1[size] = math.log(values1[size] + 2 ** size, 2)
     values2[size] = math.log(values2[size] + 2 ** size, 2)
     values3[size] = math.log(values3[size] + 2 ** size, 2)
@@ -69,7 +75,7 @@ plt.bar(r3, values3, width=bar_width, label='PRAC-4', edgecolor = "black", linew
 
 # # Adding labels
 plt.xlabel('Back-Off Threshold, $N_{BO}$', fontsize=22)
-plt.ylabel('Min TRH', fontsize=22)
+plt.ylabel('TRH', fontsize=22)
 plt.xticks([r + bar_width for r in range(len(categories))], categories)
 plt.yticks([size for size in range(0, 10)], Y_categories)
 plt.grid(axis='y', linestyle='--', color='black', alpha=0.7)

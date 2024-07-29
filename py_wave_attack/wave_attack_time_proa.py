@@ -29,7 +29,21 @@ def inc_time(time, val):
         time += TRFC
     return time
 
+def inc_time_and_it(time, val, it_num):
+    prevTREFI = (time + TREFI + TRFC) // TREFI
+    time += val
+
+    # If current time + TRFC will be in the next tREFi, it means current time
+    # need to be issued a refresh
+    if prevTREFI < (time + TREFI + TRFC) // TREFI:
+        time += TRFC
+        it_num -= 1
+    return (time, it_num)
+
+
 for N_BO in [2 ** size for size in range(0, 9)]:
+    prev_effective_it = 0
+    prev_reduction = 0
     for wave_len in range(MIN_WAVE_LEN, MAX_WAVE_LEN):
 
         # Generate the wave pattern, PQ {id, count} and List {id}
@@ -37,30 +51,37 @@ for N_BO in [2 ** size for size in range(0, 9)]:
         it_num = wave_len
         if (N_BO > 1):
             act = wave_len * (N_BO - 1)
-            total_time = TRC * act + (act // ACT_TREFI) * TRFC
+            total_time = 52 * act + (act // ACT_TREFI) * TRFC
             # for _ in range(wave_len * (N_BO - 1)):
             #     total_time = inc_time(total_time, TRC)
-        
-        # Minus tREFi period where the wave rows will be refreshed (avoid this period)
-        # total_time += 3905 * (wave_len // 8)
-        # Setup.
-        # Starting from row 2, activate four apart.
 
-        total_time = inc_time(total_time, TRC)
+        # Rows also goes away after TREFIs
+        
+        reduction = total_time // TREFI
+        it_num -= reduction
+        effective_it = it_num
+        total_time, it_num = inc_time_and_it(total_time, TRC, it_num)
         # Runs for loop until List is empty
         while it_num > 0:
 
-            total_time = inc_time(total_time, TABO_ACT)
+            total_time, it_num = inc_time_and_it(total_time, TABO_ACT, it_num)
             it_num -= ABO_DELAY
             if it_num <= 0:
-                break    
-            total_time = inc_time(total_time, TRFM * ABO_DELAY)
-            total_time = inc_time(total_time, TRC * ABO_DELAY)
-        
+                break
+
+            total_time, it_num = inc_time_and_it(total_time, TRFM * ABO_DELAY, it_num)
+            if it_num <= 0:
+                break
+
+            total_time, it_num = inc_time_and_it(total_time, TRC * ABO_DELAY, it_num)
+            if it_num <= 0:
+                break
         if (total_time > TREFW):
             break
+        prev_effective_it = effective_it
+        prev_reduction = reduction
     if (wave_len == MAX_WAVE_LEN - 1):
-        print(wave_len, N_BO)
+        print(wave_len, prev_reduction, prev_effective_it, N_BO)
     else:
-        print(wave_len - 1, N_BO)
+        print(wave_len - 1, prev_reduction, prev_effective_it, N_BO)
     sys.stdout.flush()

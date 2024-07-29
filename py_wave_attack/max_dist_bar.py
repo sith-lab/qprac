@@ -7,7 +7,7 @@ def load_max_dist_map(filename):
     dist_map = [{},{},{}]
     with open(filename) as f:
         for rfm in range(0, 3):
-            for n in range(64000):
+            for n in range(65536):
                 line = f.readline().strip()
                 act, wave_len = line.split(" ")
                 dist_map[rfm][(2 ** rfm, int(wave_len))] = int(act) - 1

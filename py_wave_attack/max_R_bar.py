@@ -42,7 +42,7 @@ plt.bar(r3, values3, width=bar_width, label='PRAC-4', edgecolor = "black", linew
 # plt.xlabel('Back-Off Threshold, $N_{BO}$', fontsize=22)
 plt.ylabel('Max $R_1$', fontsize=22)
 plt.xticks([r + bar_width for r in range(len(categories))], categories)
-plt.yticks([5000, 10000,20000,40000,60000], [f"{i}k" for i in [5, 10, 20, 40, 60]])
+plt.yticks([10*1024,20*1024, 30*1024, 40*1024, 50*1024, 60*1024], [f"{i}K" for i in [10, 20, 30, 40, 50, 60]])
 plt.grid(axis='y', linestyle='--', color='black', alpha=0.7)
 
 # Adding legend

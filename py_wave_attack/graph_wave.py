@@ -25,7 +25,7 @@ with open(sys.argv[1]) as f:
 fig, ax = plt.subplots()
 
 x = np.arange(4, N_count + 1, 1, dtype=int)
-ax.set_yticks(np.arange(0, 100, step=5))
+# ax.set_yticks(np.arange(0, 100, step=5))
 ax.set_xticks([4] + [i * 10000 for i in range(1, 7)])
 ax.tick_params(axis='both', which='major', labelsize=16)
 ax.tick_params(axis='both', which='minor', labelsize=16)
@@ -35,12 +35,10 @@ yticks = ax.get_yticks()
 
 
 for i in range(config_count):
-    plt.plot(x, configList[i][0][3:], lw=3, path_effects=[pe.SimpleLineShadow(shadow_color='g'), pe.Normal()])
+    plt.plot(x, configList[i][0][3:], lw=3)
 
 fig.set_size_inches(10, 3)
 
-        # f"PRAC-{2 ** i} MAX=(Wave_Len: {configList[i][1][0]}, Disturbance: {configList[i][1][1]})"
-        # for i in range(config_count)
 leg = plt.legend(
     [
     f"PRAC-{2 ** i}" for i in range(config_count)

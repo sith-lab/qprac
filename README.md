@@ -17,7 +17,7 @@ The security analysis scripts also uses Max R1 Monte Carlo Simulated data from `
 - **Fetch the code:** `git clone https://github.com/sith-lab/prac.git`
   - **Run Artifact:**
     ```
-      $ cd prac/wave-parallel/
+      $ cd prac/security_analysis/wave_attack_montecarlo
       $ bash ./runall.sh
       $ bash ./make_plots.sh
     ```
@@ -33,19 +33,19 @@ These commands run all the following steps (compile, execute, and generate a vis
 ### Compile
 Compile the Monte Carlo Simulation of wave attack on PRAC:
 ```
-  $ cd prac/wave-parallel/
+  $ cd prac/security_analysis/wave_attack_montecarlo
   $ g++ -Wno-c++11-extensions waveattack_parallel.cpp -o waveattack_parallel
 ```
 
 Compile the Monte Carlo Simulation of wave attack with proactive mitigation on PRAC:
 ```
-  $ cd prac/wave-parallel/
+  $ cd prac/security_analysis/wave_attack_montecarlo
   $ g++ -Wno-c++11-extensions waveattack_parallel-pro.cpp -o waveattack_parallel-pro
 ```
 
 Compile the Monte Carlo Simulation of wave attack with proactive mitigation on QPRAC:
 ```
-  $ cd prac/wave-parallel/
+  $ cd prac/security_analysis/wave_attack_montecarlo
   $ g++ -Wno-c++11-extensions waveattack_parallel-pro-pq.cpp -o waveattack_parallel-pro-pq
 ```
 
@@ -53,19 +53,19 @@ Compile the Monte Carlo Simulation of wave attack with proactive mitigation on Q
 
 Run the wave attack on PRAC:
 ```
-  $ cd prac/wave-parallel/
+  $ cd prac/security_analysis/wave_attack_montecarlo
   $ bash runscript-prac.sh
 ```
 
 Run the wave attack with proactive mitigation on PRAC:
 ```
-  $ cd prac/wave-parallel/
+  $ cd prac/security_analysis/wave_attack_montecarlo
   $ bash runscript-prac-pro.sh
 ```
 
 Run the wave attack with proactive mitigation on QPRAC:
 ```
-  $ cd prac/wave-parallel/
+  $ cd prac/security_analysis/wave_attack_montecarlo
   $ bash runscript-prac-pro-nbo32-nbo64-pq.sh
 ```
 
@@ -73,7 +73,7 @@ Run the wave attack with proactive mitigation on QPRAC:
 
 Generate the pdf files of the Monte Carlo Simulations using the following commands:
 ```
-  $ cd prac/wave-parallel/
+  $ cd prac/security_analysis/wave_attack_montecarlo
   $ bash ./make_plots.sh
 ```
 
@@ -83,7 +83,7 @@ Generate the pdf files of the Monte Carlo Simulations using the following comman
   - **Fetch the code:** `git clone https://github.com/sith-lab/prac.git`
   - **Run Artifact:**
     ```
-      $ cd prac/security_analysis/
+      $ cd prac/security_analysis
       $ bash ./run_artifact.sh
     ```
 These commands generate the analysis results and figures for the security analysis section.

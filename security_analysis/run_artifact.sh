@@ -33,7 +33,7 @@ echo "Figure 7. Maximum R_1 from equation (3)"
 echo "#####################"
 echo ""
 # python3 analysis_scripts/r1_equation.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <ABO_Delay>
-python3 graph_scripts/figure7.py r1_montecarlo/R1.txt
+python3 graph_scripts/figure7.py graph_scripts/r1_montecarlo/R1.txt
 
 echo ""
 echo "---------------------------"
@@ -42,7 +42,7 @@ echo "#####################"
 echo "Figure 8. Maximum TRH"
 echo "#####################"
 echo ""
-python3 graph_scripts/figure8.py PRAC1-4.txt r1_montecarlo/R1.txt
+python3 graph_scripts/figure8.py PRAC1-4.txt graph_scripts/r1_montecarlo/R1.txt
 
 echo ""
 echo "---------------------------"
@@ -51,7 +51,7 @@ echo "#####################"
 echo "Figure 11. Maximum R_1 with or without Proactive Mitigation."
 echo "#####################"
 echo ""
-python3 graph_scripts/figure11.py r1_montecarlo/R1.txt r1_montecarlo/R1_PROA.txt 
+python3 graph_scripts/figure11.py graph_scripts/r1_montecarlo/R1.txt graph_scripts/r1_montecarlo/R1_PROA.txt 
 
 echo ""
 echo "---------------------------"
@@ -72,6 +72,6 @@ echo "#####################"
 echo "Figure 13. Maximum TRH with or without Proactive Mitigation"
 echo "#####################"
 echo ""
-python3 graph_scripts/figure13.py PRAC1-4.txt r1_montecarlo/R1.txt r1_montecarlo/R1_PROA.txt
+python3 graph_scripts/figure13.py PRAC1-4.txt graph_scripts/r1_montecarlo/R1.txt graph_scripts/r1_montecarlo/R1_PROA.txt
 
 echo "Figure Generation completed!."

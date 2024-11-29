@@ -59,6 +59,4 @@ plt.legend(
     ncols=5,
     bbox_to_anchor=(0.5, 1.24))
 
-plt.show()
-
-fig.savefig("./output/graphs/tbit_attack.pdf", transparent=True, format="pdf", bbox_inches="tight")
+fig.savefig("figure2.pdf", transparent=True, format="pdf", bbox_inches="tight")

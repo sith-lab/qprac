@@ -77,7 +77,4 @@ plt.yticks([size for size in range(0, 10)], Y_categories)
 plt.legend(fontsize=16,
     ncols=3)
 
-# Showing the plot
-plt.show()
-
-fig.savefig("./output/graphs/TRH_vs_NBO.pdf", transparent=True, format="pdf", bbox_inches="tight")
+fig.savefig("figure8.pdf", transparent=True, format="pdf", bbox_inches="tight")

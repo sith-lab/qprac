@@ -53,6 +53,6 @@ for line in leg.get_lines():
     line.set_linewidth(4.0)
 plt.xlabel('Row Pool Size, R$_1$', fontsize=22)
 plt.ylabel("N$_{online}$", fontsize=22)
-plt.show()
-fig.savefig("./output/graphs/N_Online_VS_PRAC_N_PROA.pdf", transparent=True, format="pdf", bbox_inches="tight")
+
+fig.savefig("figure12.pdf", transparent=True, format="pdf", bbox_inches="tight")
 

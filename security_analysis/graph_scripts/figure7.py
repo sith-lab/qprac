@@ -52,7 +52,4 @@ plt.yticks([10*1024,20*1024, 30*1024, 40*1024, 50*1024, 60*1024], [f"{i}K" for i
 plt.legend(fontsize=16,
     ncols=3)
 
-# Showing the plot
-plt.show()
-
-fig.savefig("./output/graphs/R1_vs_NBO.pdf", transparent=True, format="pdf", bbox_inches="tight")
+fig.savefig("figure7.pdf", transparent=True, format="pdf", bbox_inches="tight")

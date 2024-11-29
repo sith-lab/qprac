@@ -78,6 +78,5 @@ for a in ax:
         loc="upper center")
     for line in leg.get_lines():
         line.set_linewidth(3.0)
-plt.show()
 
-fig.savefig(f"./output/graphs/R1_single.pdf", transparent=True, format="pdf", bbox_inches="tight")
+fig.savefig(f"figure11.pdf", transparent=True, format="pdf", bbox_inches="tight")

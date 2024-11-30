@@ -1,8 +1,0 @@
-rm PRAC1-PLOT/*.pdf
-rm PRAC1-PRO-PLOT/*.pdf
-rm PRAC1-PRO-PLOT-NBO32-Q/*.pdf
-rm PRAC1-PRO-PLOT-NBO64-Q/*.pdf
-rm PRAC2-PLOT/*.pdf
-rm PRAC2-PRO-PLOT/*.pdf
-rm PRAC4-PLOT/*.pdf
-rm PRAC4-PRO-PLOT/*.pdf

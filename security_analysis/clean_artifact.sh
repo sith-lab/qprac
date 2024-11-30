@@ -1,3 +1,4 @@
-rm PRAC1-4.txt
+rm figure*/*.pdf
+rm PRAC*.txt
+rm R1*.txt
 rm tbit_attack.txt
-rm *.pdf

@@ -29,7 +29,7 @@ else
     echo "Generating Results needed for Artifacts..."
     echo "#####################"
     echo ""
-    echo "Note: This can take around <> hours. If you do not want to run the entire data, add '--use-sample' option to use the existing sample data instead."
+    echo "Note: This can take around 1-2 hours. If you do not want to run the entire data, add '--use-sample' option to use the existing sample data instead."
     python3 analysis_scripts/tbit_attack.py 6 8 10 > tbit_attack.txt
     python3 analysis_scripts/equation2.py 0 $((2**17)) > PRAC1-4.txt
     python3 analysis_scripts/equation2_pro.py 0 $((2**17)) > PRAC1-4_PRO.txt

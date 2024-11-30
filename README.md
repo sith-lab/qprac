@@ -24,7 +24,7 @@
     ```
 These commands generate the analysis results and figures for the security analysis section.
 
-> **Note: Regenerating the data will take around <> hours.**
+> **Note: Regenerating the data will take around 1-2 hours.**
 
 ### Script Argument Definition List
   - **MIN_WAVE_LEN**          = Set of Rows to Start with (minimum)
@@ -69,7 +69,7 @@ These commands generate the analysis results and figures for the security analys
     ```bash
       $ cd qprac/security_analysis/figure6
       $ # Example: 
-      $ #   python3 ../analysis_scripts/equation2.py 0 $((2**17)) >> PRAC1-4.txt
+      $ #   python3 ../analysis_scripts/equation2.py 0 $((2**17)) > PRAC1-4.txt
       $ #   python3 figure6_plot.py PRAC1-4.txt $((2**17))
       $ python3 ../analysis_scripts/equation2.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2>
       $ python3 figure6.py <RESULT_EQ2> <MAX_WAVE_LEN>
@@ -79,7 +79,7 @@ These commands generate the analysis results and figures for the security analys
     ```bash
       $ cd qprac/security_analysis/figure7
       $ # Example: 
-      $ #   python3 ../analysis_scripts/equation3.py 0 $((2**17)) > R1.txt
+      $ #   python3 ../analysis_scripts/equation3.py 0 $((2**17)) R1.txt
       $ #   python3 figure7_plot.py R1.txt
       $ python3 ../analysis_scripts/equation3.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3>
       $ python3 figure7_plot.py <RESULT_EQ3>
@@ -89,8 +89,8 @@ These commands generate the analysis results and figures for the security analys
     ```bash
       $ cd qprac/security_analysis/figure8
       $ # Example:
-      $ #   python3 ../analysis_scripts/equation2.py 0 $((2**17)) >> PRAC1-4.txt
-      $ #   python3 ../analysis_scripts/equation3.py 0 $((2**17)) > R1.txt
+      $ #   python3 ../analysis_scripts/equation2.py 0 $((2**17)) > PRAC1-4.txt
+      $ #   python3 ../analysis_scripts/equation3.py 0 $((2**17)) R1.txt
       $ #   python3 figure8_plot.py PRAC1-4.txt R1.txt
       $ python3 ../analysis_scripts/equation2.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2>
       $ python3 ../analysis_scripts/equation3.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3>
@@ -101,9 +101,9 @@ These commands generate the analysis results and figures for the security analys
     ```bash
       $ cd qprac/security_analysis/figure11
       $ # Example:
-      $ #   python3 ../analysis_scripts/equation3.py 0 $((2**17)) > R1.txt
-      $ #   python3 ../analysis_scripts/equation3_pro.py 0 $((2**17)) > R1_PRO.txt
-      $ #   python3 figure8_plot.py PRAC1-4.txt R1.txt
+      $ #   python3 ../analysis_scripts/equation3.py 0 $((2**17)) R1.txt
+      $ #   python3 ../analysis_scripts/equation3_pro.py 0 $((2**17)) R1_PRO.txt
+      $ #   python3 figure11_plot.py R1.txt R1_PRO.txt
       $ python3 ../analysis_scripts/equation3.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3>
       $ python3 ../analysis_scripts/equation3_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3_PRO>
       $ python3 figure11_plot.py <RESULT_EQ3> <RESULT_EQ3_PRO>
@@ -113,9 +113,9 @@ These commands generate the analysis results and figures for the security analys
     ```bash
       $ cd qprac/security_analysis/figure12
       $ # Example:
-      $ #   python3 ../analysis_scripts/equation3.py 0 $((2**17)) > R1.txt
-      $ #   python3 ../analysis_scripts/equation3_pro.py 0 $((2**17)) > R1_PRO.txt
-      $ #   python3 figure8_plot.py PRAC1-4.txt R1.txt
+      $ #   python3 ../analysis_scripts/equation2.py 0 $((2**17)) > PRAC1-4.txt
+      $ #   python3 ../analysis_scripts/equation2_pro.py 0 $((2**17)) > PRAC1-4_PRO.txt
+      $ #   python3 figure12_plot.py PRAC1-4.txt PRAC1-4_PRO.txt $((2**17))
       $ python3 ../analysis_scripts/equation2.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2>
       $ python3 ../analysis_scripts/equation2_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2_PRO>
       $ python3 figure12.py <RESULT_EQ2> <RESULT_EQ2_PRO> <MAX_WAVE_LEN>
@@ -125,11 +125,11 @@ These commands generate the analysis results and figures for the security analys
     ```bash
       $ cd qprac/security_analysis/figure13
       $ # Example:
-      $ # python3 ../analysis_scripts/equation2.py 0 $((2**17)) > PRAC1-4.txt
-      $ # python3 ../analysis_scripts/equation2_pro.py 0 $((2**17)) > PRAC1-4_PRO.txt
-      $ # python3 ../analysis_scripts/equation3.py 0 $((2**17)) > R1.txt
-      $ # python3 ../analysis_scripts/equation3_pro.py 0 $((2**17)) > R1_PRO.txt
-      $ # python3 figure13_plot.py PRAC1-4.txt PRAC1-4_PRO.txt R1.txt R1_PRO.txt
+      $ #   python3 ../analysis_scripts/equation2.py 0 $((2**17)) > PRAC1-4.txt
+      $ #   python3 ../analysis_scripts/equation2_pro.py 0 $((2**17)) > PRAC1-4_PRO.txt
+      $ #   python3 ../analysis_scripts/equation3.py 0 $((2**17)) R1.txt
+      $ #   python3 ../analysis_scripts/equation3_pro.py 0 $((2**17)) R1_PRO.txt
+      $ #   python3 figure13_plot.py PRAC1-4.txt PRAC1-4_PRO.txt R1.txt R1_PRO.txt
       $ python3 ../analysis_scripts/equation2.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2>
       $ python3 ../analysis_scripts/equation2_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2_PRO>
       $ python3 ../analysis_scripts/equation3.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3>

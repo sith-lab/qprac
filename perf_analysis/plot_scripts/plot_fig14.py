@@ -41,7 +41,7 @@ df_filtered['PRAC_Implementation'] = pd.Categorical(df_filtered['PRAC_Implementa
 sns.set_palette('tab10')
 sns.set_style("whitegrid")
 
-plt.rcParams['font.family'] = 'STIXGeneral'
+plt.rcParams['font.family'] = 'Times New Roman'
 
 # Create the plot
 fig, ax = plt.subplots(figsize=(12, 3.7))

@@ -1,5 +1,6 @@
 perf_analysis/ext/
 perf_analysis/sim_scripts/run_scripts/
+perf_analysis/build/
 # Ignore everything in perf_analysis/results/
 perf_analysis/results/*
 
@@ -8,3 +9,36 @@ perf_analysis/results/*
 
 # Ensure that the contents of the csvs/ directory are tracked
 !perf_analysis/results/csvs/**
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app

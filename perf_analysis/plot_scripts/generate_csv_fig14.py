@@ -170,6 +170,55 @@ def add_all_workloads_geomean_rows(df):
     
     return pd.concat([df, geomean_df], ignore_index=True)
 
+# Function to calculate geometric mean
+def calculate_arithmetic_mean(series):
+    return series.mean()
+
+# Function to calculate and add geometric means as new rows
+def add_arithmetic_mean_rows(df):
+    amean_rows = []  # List to collect new rows
+
+    for NBO in df['NBO'].unique():
+        for suite_name, workloads in benchmark_suites.items():
+            suite_df = df[(df['workload'].isin(workloads)) & (df['NBO'] == NBO)]
+            if not suite_df.empty:
+                ameans = {}
+                
+                # Dynamically calculate geometric means for each mitigation
+                for mitigation in mitigation_list:
+                    if mitigation in suite_df.columns:  # Ensure the column exists
+                        ameans[mitigation] = calculate_arithmetic_mean(suite_df[mitigation])
+                
+                # Create a new row
+                amean_row = {'NBO': NBO, 'workload': suite_name, **ameans}
+                amean_rows.append(amean_row)  # Append to the list
+
+    # Convert list of rows to DataFrame
+    amean_df = pd.DataFrame(amean_rows)
+    
+    return pd.concat([df, amean_df], ignore_index=True)
+
+# Function to add combined geometric means for all workloads in each channel and interface
+def add_all_workloads_amean_rows(df):
+    amean_rows = []  # List to collect new rows
+    
+    for NBO in df['NBO'].unique():
+            Channel_interface_df = df[(df['NBO'] == NBO)]
+            amean_values = {}
+
+            # Calculate geometric means for each mitigation in the list
+            for mitigation in mitigation_list:
+                if mitigation in Channel_interface_df.columns:  # Ensure the column exists
+                    amean_values[mitigation] = calculate_arithmetic_mean(Channel_interface_df[mitigation])
+
+            # Create a new row for the combined results
+            amean_row = {'NBO': NBO, 'workload': 'All (57)', **amean_values}
+            amean_rows.append(amean_row)  # Append to the list
+    
+    # Convert list of rows to DataFrame
+    amean_df = pd.DataFrame(amean_rows)
+    
+    return pd.concat([df, amean_df], ignore_index=True)
 
 mitigation_list = ["QPRAC-NoOp","QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
 new_column_order = ['workload', 'NBO'] + mitigation_list
@@ -178,9 +227,13 @@ geomean_df = add_geomean_rows(df_ws)
 geomean_df = add_all_workloads_geomean_rows(geomean_df)
 geomean_df = geomean_df[new_column_order]
 
+amean_df = add_arithmetic_mean_rows(df_abo)
+amean_df = add_all_workloads_amean_rows(amean_df)
+amean_df = amean_df[new_column_order]
 # Ensure the results/csvs directory exists
 csv_dir = '../results/csvs'
 os.makedirs(csv_dir, exist_ok=True)
 
 # Save the CSV file
 geomean_df.to_csv(os.path.join(csv_dir, 'QPRAC_32NBO_5PSQ_results.csv'), index=False)
+amean_df.to_csv(os.path.join(csv_dir, 'QPRAC_ABO_results.csv'), index=False)

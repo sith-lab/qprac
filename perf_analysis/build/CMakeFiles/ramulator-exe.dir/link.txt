@@ -1,0 +1,1 @@
+/home/jhwoo36/gcc-12.4/bin/c++ -O3 -DNDEBUG "CMakeFiles/ramulator-exe.dir/src/main.cpp.o" -o ramulator2  -Wl,-rpath,/scratch/st-prashnr-1/jeonghyun/QPRAC/AE/qprac/perf_analysis /scratch/st-prashnr-1/jeonghyun/QPRAC/AE/qprac/perf_analysis/libramulator.so _deps/yaml-cpp-build/libyaml-cpp.a _deps/spdlog-build/libspdlog.a

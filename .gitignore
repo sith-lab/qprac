@@ -1,0 +1,10 @@
+perf_analysis/ext/
+perf_analysis/sim_scripts/run_scripts/
+# Ignore everything in perf_analysis/results/
+perf_analysis/results/*
+
+# But do not ignore the csvs/ directory
+!perf_analysis/results/csvs/
+
+# Ensure that the contents of the csvs/ directory are tracked
+!perf_analysis/results/csvs/**

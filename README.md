@@ -1,31 +1,41 @@
-# QPRAC: Towards Secure and Practical PRAC-based Rowhammer Mitigation using Priority Queues (HPCA 2025)
+## QPRAC (HPCA 2025)
 
-## Introduction
+### Introduction
 
-[TODO]
+This is the code artifact for the paper 
+"QPRAC: Secure and Practical PRAC-based Rowhammer Mitigation using Priority Queues" Published in HPCA 2025. 
+Jeonghyun Woo, Shaopeng (Chris) Lin, Prashant J. Nair, Aamer Jaleel, Gururaj Saileshwar.
 
-## Requirements for Security Evaluations
+You can reproduce our security and performance evaluations as follows.
 
-- **Software Dependencies:** Python3 (Tested on V3.11.5), Python3 Package `matplotlib`.
+### Requirements
 
-## Steps for Generating the Security Evaluation Figures
+**Security Evaluations:**
+- Python3 (Tested on V3.11.5)
+- Python3 Package `matplotlib` for plotting
+
+**Performance Evaluations:**
+- [TODO]
+  
+### Steps for Security Evaluations
+
+Please run the following steps to regenerate the security analysis and figures:
+
   - **Fetch the code:** `git clone https://github.com/sith-lab/prac.git`
-  - **Run Artifact:**
-    ```
-      $ cd qprac/security_analysis
-      $ bash ./run_artifact.sh
-    ```
-  - **Run Artifact without regenerating data**
+  - **Run Artifact without regenerating data (faster - few minutes)** 
     ```
       $ cd qprac/security_analysis
       $ bash ./run_artifact.sh --use-sample
     ```
-These commands generate the analysis results and figures for the security analysis section.
+  - **Run Artifact with regeneration of data (monte-carlo analysis) (slower - 2 hours):**
+    ```
+      $ cd qprac/security_analysis
+      $ bash ./run_artifact.sh
+    ```
+These scripts execute the following commands outlined below.
 
-> **Note: Regenerating the data for the security analysis will take around 1-2 hours.**
-
-### Steps Run By Script
-Below we outline the steps run by our above script. 
+#### Steps Run By Script
+Below are the steps run by our above script in an automated manner. 
   - **Figure 2. Attack t-bit toggling:** 
     
     ```bash

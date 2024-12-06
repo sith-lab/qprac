@@ -4,13 +4,11 @@
 
 [TODO]
 
-## Requirements for Security Evaluations for Security Analysis
+## Requirements for Security Evaluations
 
 - **Software Dependencies:** Python3 (Tested on V3.11.5), Python3 Package `matplotlib`.
 
-## Steps for Generating the Security Analysis Figures
-
-### Clone the artifact and run the code.
+## Steps for Generating the Security Evaluation Figures
   - **Fetch the code:** `git clone https://github.com/sith-lab/prac.git`
   - **Run Artifact:**
     ```
@@ -24,36 +22,10 @@
     ```
 These commands generate the analysis results and figures for the security analysis section.
 
-> **Note: Regenerating the data will take around 1-2 hours.**
+> **Note: Regenerating the data for the security analysis will take around 1-2 hours.**
 
-### Script Argument Definition List
-  - **MIN_WAVE_LEN**          = Set of Rows to Start with (minimum)
-  - **MAX_WAVE_LEN**          = Set of Rows to Start with (maximum)
-  - **T_Bit**                 = T-Bit to attack
-  - **TESTED_BITS**           = Number of t-bits tested
-  - **RESULT_EQ2/EQ2_PRO/EQ3/EQ3_PRO**                = Equation result file name, where results from different PRAC configurations are concatenated from 1-4.
-
-### Generating Monte Carlo Results
-
-  - **Max R1 with or without Proactive Mitigation**
-    ```bash
-      $ cd qprac/security_analysis/analysis_scripts
-      $ python3 equation3.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3>
-      $ python3 equation3_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3_PRO>
-    ```
-### Generating Security Analysis Results
-  - **Panopticon t-bit Attack**
-    ```bash
-      $ cd qprac/security_analysis/analysis_scripts
-      $ python3 tbit_attack.py <T_Bit> ... > tbit_attack.txt
-    ```
-  - **Maximum N_Online from equation (2)**
-    ```
-      $ cd qprac/security_analysis/analysis_scripts
-      $ python3 equation2.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2>
-      $ python3 equation2_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2_PRO>
-    ```
-### Generating Figures
+### Steps Run By Script
+Below we outline the steps run by our above script. 
   - **Figure 2. Attack t-bit toggling:** 
     
     ```bash

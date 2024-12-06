@@ -36,6 +36,13 @@ These scripts execute the following commands outlined below.
 
 #### Steps Run By Script
 Below are the steps run by our above script in an automated manner. 
+  - **Monte Carlo Analysis (for Max R1):**
+    This obtains the Max R1 value without and with Proactive Mitigation, used for Fig-7 and Fig-11 respectively.
+    ```bash
+      $ cd qprac/security_analysis/analysis_scripts
+      $ python3 equation3.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3>
+      $ python3 equation3_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3_PRO>
+    ```
   - **Figure 2. Attack t-bit toggling:** 
     
     ```bash

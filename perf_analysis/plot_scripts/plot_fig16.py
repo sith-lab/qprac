@@ -79,10 +79,9 @@ for tick in x_ticks:
         color = colors[prac_impl]
         ax.bar(x_position, value, width=bar_width, color=color, edgecolor='black', label=prac_impl if tick == x_ticks[0] else "")
 
-# Customize legend, labels, and ticks
-handles, labels = ax.get_legend_handles_labels()
-by_label = dict(zip(labels, handles))  # Remove duplicate labels from the legend
-ax.legend(by_label.values(), by_label.keys(), loc='best', ncol=1, fancybox=True, shadow=False, fontsize=15)
+# ax.legend(by_label.values(), by_label.keys(), loc='best', ncol=1, fancybox=True, shadow=False, fontsize=15)
+ax.legend(loc='upper left', bbox_to_anchor=(0, 1.06), ncol=1, fancybox=True, shadow=False, fontsize=15)
+
 # Set xticks to specific num_RFM values and ensure correct spacing
 ax.set_xticks(x_tick_positions)
 ax.set_xticklabels([x_tick_labels[tick] for tick in x_ticks])  # Use mapped labels

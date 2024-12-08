@@ -1,15 +1,17 @@
 perf_analysis/ext/
 perf_analysis/sim_scripts/run_scripts/
 perf_analysis/build/
-perf_analysis/cputraces/
+perf_analysis/cputraces
 # Ignore everything in perf_analysis/results/
 perf_analysis/results/*
 
-# But do not ignore the csvs/ directory
+# But do not ignore the csvs/ and plots/ directories
 !perf_analysis/results/csvs/
+!perf_analysis/results/plots/
 
-# Ensure that the contents of the csvs/ directory are tracked
+# Ensure that the contents of the csvs/ and plots/ directories are tracked
 !perf_analysis/results/csvs/**
+!perf_analysis/results/plots/** 
 
 # Prerequisites
 *.d

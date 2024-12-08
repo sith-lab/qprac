@@ -24,7 +24,7 @@ The performance evaluation infrastructure in this artifact have been adapted fro
   - **Python3** (recommended: version 3.10 or above).
 
 - Hardware Dependencies:
-  - **64 core system** with at least 128GB memory is recommended to run all benchmarks efficiently.
+  - **40 core system** with at least 128GB memory is recommended to run all benchmarks efficiently.
 
 ## Security Analysis
 
@@ -149,7 +149,7 @@ Below are the steps run by our above script in an automated manner.
 - **Python3** (recommended: version 3.10 or above).
 
 #### Hardware Dependencies
-- **Personal Server**: A system with at least 128GB of memory and 64+ cores is recommended to run all benchmarks efficiently.
+- **Personal Server**: A system with at least 128GB of memory and 40+ cores is recommended to run all benchmarks efficiently.
 
 ---
 
@@ -210,7 +210,7 @@ bash ./plot_main_figures.sh
 ##### All Figures (Figures 14–18)
 ```bash
 cd perf_analysis/
-bash ./plot_main_figures.sh
+bash ./plot_all_figures.sh
 ```
 
 ---

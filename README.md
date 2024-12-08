@@ -1,6 +1,6 @@
-## QPRAC (HPCA 2025)
+# QPRAC (HPCA 2025)
 
-### Introduction
+## Introduction
 
 This is the code artifact for the paper 
 "QPRAC: Secure and Practical PRAC-based Rowhammer Mitigation using Priority Queues", whick will appear in [HPCA 2025](https://hpca-conf.org/2025/). 
@@ -9,10 +9,10 @@ Authors: Jeonghyun Woo (University of British Columbia), Shaopeng (Chris) Lin (U
 
 You can reproduce our security and performance evaluations as follows.
 
-### Acknowledgement   
+## Acknowledgement   
  This artifact and simulation infrastructure have been adapted from [SRS (HPCA 2023)](https://github.com/STAR-Laboratory/scale-srs) and [BreakHammer (MICRO 2024)](https://github.com/CMU-SAFARI/BreakHammer).
 
-# Security Analysis
+## Security Analysis
 ### Requirements
 
 **Security Evaluations:**
@@ -134,43 +134,43 @@ Below are the steps run by our above script in an automated manner.
       $ python3 figure13.py <RESULT_EQ2> <RESULT_EQ2_PRO> <RESULT_EQ3> <RESULT_EQ3_PRO>
     ```
 
-# Performance Evaluations Using Ramulator2
+## Performance Evaluations Using Ramulator2
 
-## Requirements
-### Software Dependencies
+### Requirements
+#### Software Dependencies
 - **g++** with C++20 support (tested with version 12.4.0).
 - **Python3** (recommended: version 3.10 or above).
 
-### Hardware Dependencies
+#### Hardware Dependencies
 - **Personal Server**: A CPU with at least 128GB of memory and 64+ cores is recommended to run all benchmarks efficiently.
 
 ---
 
-## Steps for Performance Evaluations
+### Steps for Performance Evaluations
 
-### 1. Clone the Repository
+#### 1. Clone the Repository
 Ensure you have already cloned the repository during the security analysis:
 ```bash
 git clone https://github.com/sith-lab/qprac.git
 ```
 
-### 2. Set Simulation Configuration Parameters
+#### 2. Set Simulation Configuration Parameters
 
-#### Using SLURM
+##### Using SLURM
 Configure the following parameters in `./perf_analysis/run_artifact.sh` or relevant SLURM scripts (`run_slurm_fig*.sh`):
 - **`SLURM_PART_NAME`**: Partition name for SLURM jobs.
 - **`SLURM_PART_DEF_MEM`**: Default memory size for jobs (recommended: ≥4GB).
 - **`SLURM_PART_BIG_MEM`**: Memory size for jobs requiring large memory (recommended: ≥12GB).
 - **`MAX_SLURM_JOBS`**: Maximum number of SLURM jobs submitted.
 
-#### Using a Personal Server
+##### Using a Personal Server
 Configure the following parameter in `./perf_analysis/run_artifact.sh` or `run_ps_fig*.sh`:
 - **`PERSONAL_RUN_THREADS`**: Number of parallel threads to use for simulations.
 
-### 3. Run the Artifact
+#### 3. Run the Artifact
 Run the following commands to install dependencies, build Ramulator2, and execute simulations.
 
-#### Main Experiments Only (Figures 14 and 15)
+##### Main Experiments Only (Figures 14 and 15)
 - **Using SLURM**:
   ```bash
   cd perf_analysis/
@@ -182,7 +182,7 @@ Run the following commands to install dependencies, build Ramulator2, and execut
   bash ./run_artifact.sh --method personal --artifact main
   ```
 
-#### All Experiments (Figures 14–18)
+##### All Experiments (Figures 14–18)
 - **Using SLURM**:
   ```bash
   cd perf_analysis/
@@ -191,16 +191,16 @@ Run the following commands to install dependencies, build Ramulator2, and execut
 - **Using a Personal Server**:
   Running all experiments on a personal server may take significant time (days to a week). No single script is provided; follow manual steps for individual experiments.
 
-### 4. Generate Figures
+#### 4. Generate Figures
 After completing simulations, use the commands below to generate plots. Alternatively, use the Jupyter Notebook (`perf_analysis/plot_scripts/plot.ipynb`). Generated PDFs can be found in `perf_analysis/results/plots/`.
 
-#### Main Figures (Figures 14 and 15)
+##### Main Figures (Figures 14 and 15)
 ```bash
 cd perf_analysis/
 bash ./plot_main_figures.sh
 ```
 
-#### All Figures (Figures 14–18)
+##### All Figures (Figures 14–18)
 ```bash
 cd perf_analysis/
 bash ./plot_main_figures.sh
@@ -208,23 +208,23 @@ bash ./plot_main_figures.sh
 
 ---
 
-## Detailed Steps
+### Detailed Steps
 
-### Prerequisites
+#### Prerequisites
 Install Python dependencies, download required traces, and build Ramulator2:
    ```bash
    cd perf_analysis/
    bash run_prerequisite.sh
    ```
 
-### Execution
+#### Execution
 Set simulation configuration parameters:
 - **SLURM**: Configure `SLURM_PART_NAME`, `SLURM_PART_DEF_MEM`, `SLURM_PART_BIG_MEM`, and `MAX_SLURM_JOBS` in `run_slurm_fig*.sh`.
 - **Personal Server**: Configure `PERSONAL_RUN_THREADS` in `run_ps_fig*.sh`.
 
-### Run experiments:
+#### Run experiments:
 
-#### Using SLURM
+##### Using SLURM
 - **Main Results (Figures 14 and 15)**:
   ```bash
   cd perf_analysis/
@@ -246,7 +246,7 @@ Set simulation configuration parameters:
   bash run_slurm_fig18.sh
   ```
 
-#### Using a Personal Server
+##### Using a Personal Server
 - **Main Results (Figures 14 and 15)**:
   ```bash
   cd perf_analysis/
@@ -268,7 +268,7 @@ Set simulation configuration parameters:
   bash run_ps_fig18.sh
   ```
 
-### Collate Results
+#### Collate Results
 Once simulations complete, generate CSV files using the commands below. Generated csv files can be found in `perf_analysis/results/csvs/`.
 - **Main Results (Figures 14 and 15)**:
   ```bash
@@ -288,7 +288,7 @@ Once simulations complete, generate CSV files using the commands below. Generate
   python3 generate_csv_fig18.py
   ```
 
-### Generate Plots
+#### Generate Plots
 After collating results, generate the plots in using the commands below. Alternatively, use the Jupyter Notebook (`perf_analysis/plot_scripts/plot.ipynb`). Generated PDFs can be found in `perf_analysis/results/plots/`.
 - **Main Results (Figures 14 and 15)**:
   ```bash

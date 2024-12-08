@@ -1,6 +1,7 @@
 perf_analysis/ext/
 perf_analysis/sim_scripts/run_scripts/
 perf_analysis/build/
+perf_analysis/cputraces/
 # Ignore everything in perf_analysis/results/
 perf_analysis/results/*
 

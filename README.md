@@ -11,7 +11,7 @@
 ## Steps for Generating the Security Analysis Figures
 
 ### Clone the artifact and run the code.
-  - **Fetch the code:** `git clone https://github.com/sith-lab/prac.git`
+  - **Fetch the code:** `git clone https://github.com/sith-lab/qprac.git`
   - **Run Artifact:**
     ```
       $ cd qprac/security_analysis
@@ -136,3 +136,177 @@ These commands generate the analysis results and figures for the security analys
       $ python3 ../analysis_scripts/equation3_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3_PRO>
       $ python3 figure13.py <RESULT_EQ2> <RESULT_EQ2_PRO> <RESULT_EQ3> <RESULT_EQ3_PRO>
     ```
+
+# Performance Evaluations Using Ramulator2
+
+## Requirements
+### Software Dependencies
+- **g++** with C++20 support (tested with version 12.4.0).
+- **Python3** (recommended: version 3.10 or above).
+
+### Hardware Dependencies
+- **Personal Server**: A CPU with at least 128GB of memory and 64+ cores is recommended to run all benchmarks efficiently.
+
+---
+
+## Steps for Performance Evaluations
+
+### 1. Clone the Repository
+Ensure you have already cloned the repository during the security analysis:
+```bash
+git clone https://github.com/sith-lab/qprac.git
+```
+
+### 2. Set Simulation Configuration Parameters
+
+#### Using SLURM
+Configure the following parameters in `./perf_analysis/run_artifact.sh` or relevant SLURM scripts (`run_slurm_fig*.sh`):
+- **`SLURM_PART_NAME`**: Partition name for SLURM jobs.
+- **`SLURM_PART_DEF_MEM`**: Default memory size for jobs (recommended: ≥4GB).
+- **`SLURM_PART_BIG_MEM`**: Memory size for jobs requiring large memory (recommended: ≥12GB).
+- **`MAX_SLURM_JOBS`**: Maximum number of SLURM jobs submitted.
+
+#### Using a Personal Server
+Configure the following parameter in `./perf_analysis/run_artifact.sh` or `run_ps_fig*.sh`:
+- **`PERSONAL_RUN_THREADS`**: Number of parallel threads to use for simulations.
+
+### 3. Run the Artifact
+Run the following commands to install dependencies, build Ramulator2, and execute simulations.
+
+#### Main Experiments Only (Figures 14 and 15)
+- **Using SLURM**:
+  ```bash
+  cd perf_analysis/
+  bash ./run_artifact.sh --method slurm --artifact main
+  ```
+- **Using a Personal Server**:
+  ```bash
+  cd perf_analysis/
+  bash ./run_artifact.sh --method personal --artifact main
+  ```
+
+#### All Experiments (Figures 14–18)
+- **Using SLURM**:
+  ```bash
+  cd perf_analysis/
+  bash ./run_artifact.sh --method slurm --artifact all
+  ```
+- **Using a Personal Server**:
+  Running all experiments on a personal server may take significant time (days to a week). No single script is provided; follow manual steps for individual experiments.
+
+### 4. Generate Figures
+After completing simulations, use the commands below to generate plots. Alternatively, use the Jupyter Notebook (`perf_analysis/plot_scripts/plot.ipynb`). Generated PDFs can be found in `perf_analysis/results/plots/`.
+
+#### Main Figures (Figures 14 and 15)
+```bash
+cd perf_analysis/
+bash ./plot_main_figures.sh
+```
+
+#### All Figures (Figures 14–18)
+```bash
+cd perf_analysis/
+bash ./plot_main_figures.sh
+```
+
+---
+
+## Detailed Steps
+
+### Prerequisites
+Install Python dependencies, download required traces, and build Ramulator2:
+   ```bash
+   cd perf_analysis/
+   bash run_prerequisite.sh
+   ```
+
+### Execution
+Set simulation configuration parameters:
+- **SLURM**: Configure `SLURM_PART_NAME`, `SLURM_PART_DEF_MEM`, `SLURM_PART_BIG_MEM`, and `MAX_SLURM_JOBS` in `run_slurm_fig*.sh`.
+- **Personal Server**: Configure `PERSONAL_RUN_THREADS` in `run_ps_fig*.sh`.
+
+### Run experiments:
+
+#### Using SLURM
+- **Main Results (Figures 14 and 15)**:
+  ```bash
+  cd perf_analysis/
+  bash run_slurm_fig14_15.sh
+  ```
+- **Figure 16: Sensitivity to Number of RFMs per Alert**:
+  ```bash
+  cd perf_analysis/
+  bash run_slurm_fig16.sh
+  ```
+- **Figure 17: Sensitivity to Service Queue Size**:
+  ```bash
+  cd perf_analysis/
+  bash run_slurm_fig17.sh
+  ```
+- **Figure 18: Sensitivity to Back-Off Threshold**:
+  ```bash
+  cd perf_analysis/
+  bash run_slurm_fig18.sh
+  ```
+
+#### Using a Personal Server
+- **Main Results (Figures 14 and 15)**:
+  ```bash
+  cd perf_analysis/
+  bash run_ps_fig14_15.sh
+  ```
+- **Figure 16: Sensitivity to Number of RFMs per Alert**:
+  ```bash
+  cd perf_analysis/
+  bash run_ps_fig16.sh
+  ```
+- **Figure 17: Sensitivity to Service Queue Size**:
+  ```bash
+  cd perf_analysis/
+  bash run_ps_fig17.sh
+  ```
+- **Figure 18: Sensitivity to Back-Off Threshold**:
+  ```bash
+  cd perf_analysis/
+  bash run_ps_fig18.sh
+  ```
+
+### Collate Results
+Once simulations complete, generate CSV files using the commands below. Generated csv files can be found in `perf_analysis/results/csvs/`.
+- **Main Results (Figures 14 and 15)**:
+  ```bash
+  cd perf_analysis/plot_scripts
+  python3 generate_csv_fig14_15.py
+  ```
+- **Figure 16**:
+  ```bash
+  python3 generate_csv_fig16.py
+  ```
+- **Figure 17**:
+  ```bash
+  python3 generate_csv_fig17.py
+  ```
+- **Figure 18**:
+  ```bash
+  python3 generate_csv_fig18.py
+  ```
+
+### Generate Plots
+After collating results, generate the plots in using the commands below. Alternatively, use the Jupyter Notebook (`perf_analysis/plot_scripts/plot.ipynb`). Generated PDFs can be found in `perf_analysis/results/plots/`.
+- **Main Results (Figures 14 and 15)**:
+  ```bash
+  cd perf_analysis/plot_scripts
+  python3 plot_fig14_15.py
+  ```
+- **Figure 16**:
+  ```bash
+  python3 plot_fig16.py
+  ```
+- **Figure 17**:
+  ```bash
+  python3 plot_fig17.py
+  ```
+- **Figure 18**:
+  ```bash
+  python3 plot_fig18.py
+  ```

@@ -4,11 +4,11 @@ import copy
 import argparse
 import pandas as pd
 
-from run_config import *
+from run_config_fig14_15 import *
 
 argparser = argparse.ArgumentParser(
-    prog="RunSlurm",
-    description="Run ramulator2 simulations using Slurm"
+    prog="RunPersonal",
+    description="Run ramulator2 simulations on a personal server"
 )
 
 argparser.add_argument("-rmd", "--ramulator_directory")
@@ -16,7 +16,6 @@ argparser.add_argument("-wd", "--working_directory")
 argparser.add_argument("-bc", "--base_config")
 argparser.add_argument("-td", "--trace_directory")
 argparser.add_argument("-rd", "--result_directory")
-argparser.add_argument("-pn", "--partition_name")
 
 args = argparser.parse_args()
 
@@ -25,14 +24,10 @@ WORK_DIR = args.working_directory
 BASE_CONFIG_FILE = args.base_config
 TRACE_DIR = args.trace_directory
 RESULT_DIR = args.result_directory
-PARTITION_NAME = args.partition_name
 
-
-SBATCH_CMD = "sbatch --cpus-per-task=1 --nodes=1 --ntasks=1 --time=24:00:00 \
-    --mem=6000M --mail-user=jhwoo36@ece.ubc.ca --mail-type=FAIL --account=st-prashnr-1"
 
 CMD_HEADER = "#!/bin/bash"
-CMD = f"{RAMULATOR_DIR}/ramulator2"
+BASE_CMD = f"{RAMULATOR_DIR}/ramulator2"
 
 BASE_CONFIG = None
 
@@ -53,7 +48,6 @@ if NUM_MAX_CYCLES > 0:
 for mitigation in mitigation_list:
     for path in [
             f"{RESULT_DIR}/{mitigation}/stats",
-            f"{RESULT_DIR}/{mitigation}/errors",
             f"{RESULT_DIR}/{mitigation}/configs",
             f"{RESULT_DIR}/{mitigation}/cmd_count"
         ]:
@@ -127,17 +121,15 @@ def get_multicore_run_commands():
     for config in multicore_params:
         mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_ratio = config
         stat_str = make_stat_str(config[1:])
-        i = 0
+        
         for trace in traces:
             result_filename = f"{RESULT_DIR}/{mitigation}/stats/{stat_str}_{trace}.txt"
-            error_filename = f"{RESULT_DIR}/{mitigation}/errors/{stat_str}_{trace}.txt"
             config_filename = f"{RESULT_DIR}/{mitigation}/configs/{stat_str}_{trace}.yaml"
             cmd_count_filename = f"{RESULT_DIR}/{mitigation}/cmd_count/{stat_str}_{trace}.cmd.count"
             config = copy.deepcopy(BASE_CONFIG)
 
             config["MemorySystem"][CONTROLLER]["plugins"][0]["ControllerPlugin"]["path"] = cmd_count_filename
 
-            # Separate this part later for better structures
             workload_name_list = [trace] * 4
             workload_name_list_dir = [(TRACE_DIR + "/" + x) for x in workload_name_list]
                 
@@ -149,27 +141,8 @@ def get_multicore_run_commands():
             yaml.dump(config, config_file, default_flow_style=False)
             config_file.close()
 
-            sbatch_filename = f"{WORK_DIR}/run_scripts/{mitigation}_{stat_str}_{trace}.sh"
-            sbatch_file = open(sbatch_filename, "w")
-            sbatch_file.write(f"{CMD_HEADER}\n{CMD} -f {config_filename}\n")
-            sbatch_file.close()
-
-            job_name = f"{mitigation}_{stat_str}_{trace}"
-            sb_cmd = f"{SBATCH_CMD} --chdir={WORK_DIR} --output={result_filename}"
-            if i % 2 == 1:
-                sb_cmd = sb_cmd.replace("--mem=6000M", "--mem=4500M")
-            if trace in ["wc_8443", "wc_map0", "429.mcf", "519.lbm", "549.fotonik3d"]:
-                if i % 2 == 0:
-                    sb_cmd = sb_cmd.replace("--mem=6000M", "--mem=24G")
-                else:
-                    sb_cmd = sb_cmd.replace("--mem=4500M", "--mem=19G")
-            sb_cmd += f" --error={error_filename} --partition={PARTITION_NAME} --job-name='{job_name}'"
-            sb_cmd += f" {sbatch_filename}"
-
-            if i % 2 == 1:
-                sb_cmd = sb_cmd.replace("--partition=skylake", "--partition=cascade")
-            run_commands.append(sb_cmd)
-            i += 1
+            cmd = f"{BASE_CMD} -f {config_filename} > {result_filename} 2>&1"
+            run_commands.append(cmd)
     return run_commands
 
 os.system(f"rm -r {WORK_DIR}/run_scripts")

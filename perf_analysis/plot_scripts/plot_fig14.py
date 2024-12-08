@@ -78,6 +78,5 @@ plt.show()
 plots_dir = '../results/plots'
 os.makedirs(plots_dir, exist_ok=True)
 
-# output_fig = './figures/Performance_Results_32BO_1RFM_4Queue.pdf'
-fig.savefig(os.path.join(plots_dir, 'Figure_11.pdf'), dpi=600, bbox_inches='tight')
-print(f"Figure 11 Generated")
+fig.savefig(os.path.join(plots_dir, 'Figure_14.pdf'), dpi=600, bbox_inches='tight')
+print(f"Figure 14 Generated")

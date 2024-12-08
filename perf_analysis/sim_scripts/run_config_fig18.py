@@ -1,4 +1,5 @@
 import itertools
+import argparse
 
 SECONDS_IN_MINUTE = 60
 
@@ -28,27 +29,19 @@ SCHEDULER = "BHScheduler"
 NUM_RANKS = 2
 
 # # List of evaluated RowHammer mitigation mechanisms
-mitigation_list = ["Baseline", "QPRAC-NoOp", "QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
-# mitigation_list = ["QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
-# mitigation_list = ["QPRAC", "QPRAC+1Proactive_per_1tREFI", "QPRAC+1Proactive_per_2tREFI", "QPRAC+1Proactive_per_4tREFI"]
+mitigation_list = ["QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
+
 # List of evaluated Back-Off thresholds
-NBO_lists = [32]
-# NBO_lists = [16, 64, 128, 256]
+NBO_lists = [16, 64, 128]
 
 ## PRAC Level: # of RFMs per ABO 
 PRAC_levels = [1]
-# PRAC_levels = [2, 4]
-# PRAC_levels = [1, 2, 4]
 
 ## PSQ Sizes
 psq_sizes = [5]
-# psq_sizes = [1,2,3,4]
-# psq_sizes = [1,2,3,4,5]
 
 ## Targeted Refresh ratio (once per X tREFI)
 targeted_ref_ratios = [1]
-# targeted_ref_ratios = [1, 2, 3, 4, 5]
-
 
 params_list = [
     mitigation_list,
@@ -68,27 +61,7 @@ PARAM_STR_LIST = [
 
 def get_multicore_params_list():
     params = list(itertools.product(*params_list))
-    # for mitigation in mitigation_list:
-    #     for tRH in tRH_list:
-    #         params.append((mitigation, tRH))
     return params
-
-
-def get_trace_lists(trace_combination_file):
-    trace_comb_line_count = 0
-    multicore_trace_list = set()
-    singlecore_trace_list = set()
-    with open(trace_combination_file, "r") as f:
-        for line in f:
-            trace_comb_line_count += 1
-            line = line.strip()
-            tokens = line.split(',')
-            trace_name = tokens[0]
-            trace_list = tokens[2:]
-            for trace in trace_list:
-                singlecore_trace_list.add(trace)
-            multicore_trace_list.add(trace_name)
-    return singlecore_trace_list, multicore_trace_list
 
 def make_stat_str(param_list, delim="_"):
     return delim.join([str(param) for param in param_list])
@@ -196,6 +169,7 @@ def add_mitigation(config, mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_r
                 'enable_opportunistic_mitigation': True
             }
         })
+        
 if __name__ == "__main__":
     multicore_params = get_multicore_params_list()
     print(multicore_params)

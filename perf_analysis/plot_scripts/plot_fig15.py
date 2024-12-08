@@ -77,5 +77,5 @@ plt.show()
 plots_dir = '../results/plots'
 os.makedirs(plots_dir, exist_ok=True)
 
-fig.savefig(os.path.join(plots_dir, 'Figure_12.pdf'), dpi=600, bbox_inches='tight')
-print(f"Figure 12 Generated")
+fig.savefig(os.path.join(plots_dir, 'Figure_15.pdf'), dpi=600, bbox_inches='tight')
+print(f"Figure 15 Generated")

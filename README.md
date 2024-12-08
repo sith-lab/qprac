@@ -10,16 +10,23 @@ Authors: Jeonghyun Woo (University of British Columbia), Shaopeng (Chris) Lin (U
 You can reproduce our security and performance evaluations as follows.
 
 ## Acknowledgement   
- This artifact and simulation infrastructure have been adapted from [SRS (HPCA 2023)](https://github.com/STAR-Laboratory/scale-srs) and [BreakHammer (MICRO 2024)](https://github.com/CMU-SAFARI/BreakHammer).
+The performance evaluation infrastructure in this artifact have been adapted from [SRS (HPCA 2023)](https://github.com/STAR-Laboratory/scale-srs) and [BreakHammer (MICRO 2024)](https://github.com/CMU-SAFARI/BreakHammer).
 
-## Security Analysis
 ### Requirements
 
 **Security Evaluations:**
 - Python3 (Tested on V3.11.5)
 - Python3 Package `matplotlib` for plotting
-  
-### Steps for Security Evaluations
+
+**Performance Evaluations:**  
+- Software Dependencies:
+  - **g++** with C++20 support (tested with version 12.4.0).
+  - **Python3** (recommended: version 3.10 or above).
+
+- Hardware Dependencies:
+  - **64 core system** with at least 128GB memory is recommended to run all benchmarks efficiently.
+
+## Security Analysis
 
 Please run the following steps to regenerate the security analysis and figures:
 
@@ -142,7 +149,7 @@ Below are the steps run by our above script in an automated manner.
 - **Python3** (recommended: version 3.10 or above).
 
 #### Hardware Dependencies
-- **Personal Server**: A CPU with at least 128GB of memory and 64+ cores is recommended to run all benchmarks efficiently.
+- **Personal Server**: A system with at least 128GB of memory and 64+ cores is recommended to run all benchmarks efficiently.
 
 ---
 

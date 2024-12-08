@@ -1,14 +1,27 @@
-# QPRAC: Towards Secure and Practical PRAC-based Rowhammer Mitigation using Priority Queues (HPCA 2025)
+## QPRAC (HPCA 2025)
 
-## Introduction
+### Introduction
 
-[TODO]
+This is the code artifact for the paper 
+"QPRAC: Secure and Practical PRAC-based Rowhammer Mitigation using Priority Queues", whick will appear in [HPCA 2025](https://hpca-conf.org/2025/). 
 
-## Requirements for Security Evaluations for Security Analysis
+Authors: Jeonghyun Woo (University of British Columbia), Shaopeng (Chris) Lin (University of Toronto), Prashant J. Nair (University of British Columbia), Aamer Jaleel (NVIDIA), Gururaj Saileshwar (University of Toronto).
 
-- **Software Dependencies:** Python3 (Tested on V3.11.5), Python3 Package `matplotlib`.
+You can reproduce our security and performance evaluations as follows.
 
-## Steps for Generating the Security Analysis Figures
+### Acknowledgement   
+ This artifact and simulation infrastructure have been adapted from [SRS (HPCA 2023)](https://github.com/STAR-Laboratory/scale-srs) and [BreakHammer (MICRO 2024)](https://github.com/CMU-SAFARI/BreakHammer).
+
+# Security Analysis
+### Requirements
+
+**Security Evaluations:**
+- Python3 (Tested on V3.11.5)
+- Python3 Package `matplotlib` for plotting
+  
+### Steps for Security Evaluations
+
+Please run the following steps to regenerate the security analysis and figures:
 
 ### Clone the artifact and run the code.
   - **Fetch the code:** `git clone https://github.com/sith-lab/qprac.git`
@@ -22,38 +35,22 @@
       $ cd qprac/security_analysis
       $ bash ./run_artifact.sh --use-sample
     ```
-These commands generate the analysis results and figures for the security analysis section.
+  - **Run Artifact with regeneration of data (monte-carlo analysis) (slower - 2 hours):**
+    ```
+      $ cd qprac/security_analysis
+      $ bash ./run_artifact.sh
+    ```
+These scripts execute the following commands outlined below.
 
-> **Note: Regenerating the data will take around 1-2 hours.**
-
-### Script Argument Definition List
-  - **MIN_WAVE_LEN**          = Set of Rows to Start with (minimum)
-  - **MAX_WAVE_LEN**          = Set of Rows to Start with (maximum)
-  - **T_Bit**                 = T-Bit to attack
-  - **TESTED_BITS**           = Number of t-bits tested
-  - **RESULT_EQ2/EQ2_PRO/EQ3/EQ3_PRO**                = Equation result file name, where results from different PRAC configurations are concatenated from 1-4.
-
-### Generating Monte Carlo Results
-
-  - **Max R1 with or without Proactive Mitigation**
+#### Steps Run By Script
+Below are the steps run by our above script in an automated manner. 
+  - **Monte Carlo Analysis (for Max R1):**
+    This obtains the Max R1 value without and with Proactive Mitigation, used for Fig-7 and Fig-11 respectively.
     ```bash
       $ cd qprac/security_analysis/analysis_scripts
       $ python3 equation3.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3>
       $ python3 equation3_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> <RESULT_EQ3_PRO>
     ```
-### Generating Security Analysis Results
-  - **Panopticon t-bit Attack**
-    ```bash
-      $ cd qprac/security_analysis/analysis_scripts
-      $ python3 tbit_attack.py <T_Bit> ... > tbit_attack.txt
-    ```
-  - **Maximum N_Online from equation (2)**
-    ```
-      $ cd qprac/security_analysis/analysis_scripts
-      $ python3 equation2.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2>
-      $ python3 equation2_pro.py <MIN_WAVE_LEN> <MAX_WAVE_LEN> > <RESULT_EQ2_PRO>
-    ```
-### Generating Figures
   - **Figure 2. Attack t-bit toggling:** 
     
     ```bash

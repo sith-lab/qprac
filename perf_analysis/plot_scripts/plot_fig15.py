@@ -68,7 +68,7 @@ ax.text(33.5, 2.0, 'AMEAN', fontweight='bold')
 ax.set_xlabel('')
 ax.set_ylabel('Number of Alerts\n per tREFI', fontsize=12)
 ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), ncol=5, fancybox=True, shadow=False, fontsize=12)
-ax.set_ylim(0, 5.0)
+ax.set_ylim(0, 4.5)
 
 # Final touches and save the plot
 plt.grid(True, linestyle=':')

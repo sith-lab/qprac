@@ -16,7 +16,7 @@ The performance evaluation infrastructure in this artifact have been adapted fro
 
 **Security Evaluations:**
 - Python3 (Tested on V3.11.5)
-- Python3 Package `matplotlib` for plotting
+- Python3 Package `matplotlib` (V3.4.0 or higher is required) for plotting
 
 **Performance Evaluations:**  
 - Software Dependencies:

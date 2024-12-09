@@ -15,7 +15,7 @@ METHOD=""
 ARTIFACT=""
 
 #### Run configuration settings
-PERSONAL_RUN_THREADS=80 # Set Maximum concurrent threads here
+PERSONAL_RUN_THREADS=40 # Set Maximum concurrent threads here
 #### Set Here if you use SLURM
 # SLURM_PART_NAME=""
 SLURM_PART_NAME="skylake"
@@ -76,6 +76,7 @@ else
   python3 ./download_traces.py
   echo "Decompressing the traces into the cputraces directory"
   tar -xzvf cputraces.tar.gz --no-same-owner -C cputraces/
+  rm -r cputraces.tar.gz
 fi
 
 ## 3. Build Ramulator2

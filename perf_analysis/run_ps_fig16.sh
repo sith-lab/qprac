@@ -2,6 +2,8 @@
 # Export PERSONAL_RUN_THREADS with default values if not already set
 export PERSONAL_RUN_THREADS=${PERSONAL_RUN_THREADS:-40}
 
+rm -r "$PWD/run.sh"
+
 echo "[INFO] Generating simulation configurations and run scripts for Figure 16 Using Personal Server"
 python3 "$PWD/sim_scripts/setup_ps_fig16.py" \
     --ramulator_directory "$PWD" \

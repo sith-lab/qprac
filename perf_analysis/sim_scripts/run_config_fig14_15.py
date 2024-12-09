@@ -16,8 +16,8 @@ SLURM_SUBMIT_DELAY = 0.1
 # Delay between retrying Slurm job submission (when job limit is reached)
 SLURM_RETRY_DELAY = 1 * SECONDS_IN_MINUTE 
 
-# Number of threads used for the personal computer runs (default: 64)
-PERSONAL_RUN_THREADS = int(os.getenv('PERSONAL_RUN_THREADS', 64))
+# Number of threads used for the personal computer runs (default: 40)
+PERSONAL_RUN_THREADS = int(os.getenv('PERSONAL_RUN_THREADS', 40))
 
 # Number of instructions the slowest core must execute before the simulation ends
 NUM_EXPECTED_INSTS = 500_000_000

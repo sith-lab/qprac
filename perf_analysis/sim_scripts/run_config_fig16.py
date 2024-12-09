@@ -1,13 +1,13 @@
 import itertools
 import argparse
-
+import os
 SECONDS_IN_MINUTE = 60
 
 # Slurm username
 SLURM_USERNAME = "$USER" 
 
-# Maximum Slurm jobs
-MAX_SLURM_JOBS = 1000 
+# Maximum Slurm jobs (default: 500)
+MAX_SLURM_JOBS = int(os.getenv('MAX_SLURM_JOBS', 500))
 
 # Delay between submitting Slurm jobs (while job limit is not reached)
 SLURM_SUBMIT_DELAY = 0.1 
@@ -15,8 +15,8 @@ SLURM_SUBMIT_DELAY = 0.1
 # Delay between retrying Slurm job submission (when job limit is reached)
 SLURM_RETRY_DELAY = 1 * SECONDS_IN_MINUTE 
 
-# Number of threads used for the personal computer runs
-PERSONAL_RUN_THREADS = 80
+# Number of threads used for the personal computer runs (default: 40)
+PERSONAL_RUN_THREADS = int(os.getenv('PERSONAL_RUN_THREADS', 40))
 
 # Number of instructions the slowest core must execute before the simulation ends
 NUM_EXPECTED_INSTS = 500_000_000

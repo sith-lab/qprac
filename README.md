@@ -175,28 +175,34 @@ Configure the following parameter in `./perf_analysis/run_artifact.sh` or `run_p
 - **`PERSONAL_RUN_THREADS`**: Number of parallel threads to use for simulations.
 
 #### 3. Run the Artifact
-Run the following commands to install dependencies, build Ramulator2, and execute simulations.
+Run the following commands to install dependencies, build Ramulator2, and execute simulations.   
+> **Note:**  We strongly recommend using Slurm with a cluster capable of running bulk experiments to accelerate evaluations.
+
 
 ##### Main Experiments Only (Figures 14 and 15)
-- **Using SLURM**:
+- **Using SLURM**: Faster (~16 hours on a cluster with 500+ cores).
   ```bash
   cd perf_analysis/
   bash ./run_artifact.sh --method slurm --artifact main
   ```
-- **Using a Personal Server**:
+- **Using a Personal Server**: Slower (~1 day on an Intel Xeon with 128GB memory).
   ```bash
   cd perf_analysis/
   bash ./run_artifact.sh --method personal --artifact main
   ```
 
 ##### All Experiments (Figures 14–18)
-- **Using SLURM**:
+- **Using SLURM**: Faster (~1 day on a cluster with 500+ cores).
   ```bash
   cd perf_analysis/
   bash ./run_artifact.sh --method slurm --artifact all
   ```
-- **Using a Personal Server**:
-  Running all experiments on a personal server may take significant time (days to a week). No single script is provided; follow manual steps for individual experiments.
+- **Using a Personal Server**: Slower (~5 days on an Intel Xeon with 128GB memory).   
+  Running all experiments on a personal server may take significant time (days to a week). Thus, we highly recommend reviewing the results for main results (Figure 14 and 15) first before proceeding with all experiments if using a personal server with limited resources (e.g., < 256GB DRAM).
+  ```bash
+  cd perf_analysis/
+  bash ./run_artifact.sh --method personal --artifact all
+  ```   
 
 #### 4. Generate Figures
 After completing simulations, use the commands below to generate plots. Alternatively, use the Jupyter Notebook (`perf_analysis/plot_scripts/plot.ipynb`). Generated PDFs can be found in `perf_analysis/results/plots/`.
@@ -229,7 +235,7 @@ Set simulation configuration parameters:
 - **SLURM**: Configure `SLURM_PART_NAME`, `SLURM_PART_DEF_MEM`, `SLURM_PART_BIG_MEM`, and `MAX_SLURM_JOBS` in `run_slurm_fig*.sh`.
 - **Personal Server**: Configure `PERSONAL_RUN_THREADS` in `run_ps_fig*.sh`.
 
-#### Run experiments:
+#### Run experiments: 
 
 ##### Using SLURM
 - **Main Results (Figures 14 and 15)**:

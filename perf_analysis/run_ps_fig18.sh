@@ -1,6 +1,6 @@
 #!/bin/bash
 # Export PERSONAL_RUN_THREADS with default values if not already set
-export PERSONAL_RUN_THREADS=${PERSONAL_RUN_THREADS:-64}
+export PERSONAL_RUN_THREADS=${PERSONAL_RUN_THREADS:-40}
 
 echo "[INFO] Generating simulation configurations and run scripts for Figure 18 Using Personal Server"
 python3 "$PWD/sim_scripts/setup_ps_fig18.py" \

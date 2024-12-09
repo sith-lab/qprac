@@ -15,13 +15,13 @@ METHOD=""
 ARTIFACT=""
 
 #### Run configuration settings
-PERSONAL_RUN_THREADS=80 # Set Maximum concurrent threads
+PERSONAL_RUN_THREADS=80 # Set Maximum concurrent threads here
 #### Set Here if you use SLURM
 # SLURM_PART_NAME=""
 SLURM_PART_NAME="skylake"
-SLURM_PART_DEF_MEM='4G'
+SLURM_PART_DEF_MEM='4G' 
 SLRUM_PART_BIG_MEM='12G'
-MAX_SLURM_JOBS=1000    # Set Maximum slurm jobs
+MAX_SLURM_JOBS=1000    # Set Maximum slurm jobs here
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -111,7 +111,7 @@ if [[ "$METHOD" == "slurm" ]]; then
         echo "[INFO] Running experiments for Figure 18"
         SLURM_PART_NAME="$SLURM_PART_NAME" SLURM_PART_DEF_MEM="$SLURM_PART_DEF_MEM" SLRUM_PART_BIG_MEM="$SLRUM_PART_BIG_MEM" bash "$PWD/run_slurm_fig18.sh"
     elif [[ "$ARTIFACT" == "main" ]]; then
-        echo "[INFO] Running main experiments only"
+        echo "[INFO] Running main experiments (Figure 14 and 15)"
         SLURM_PART_NAME="$SLURM_PART_NAME" SLURM_PART_DEF_MEM="$SLURM_PART_DEF_MEM" SLRUM_PART_BIG_MEM="$SLRUM_PART_BIG_MEM" bash "$PWD/run_slurm_fig14_15.sh"
     else
         echo "[ERROR] Invalid artifact choice: $ARTIFACT"
@@ -121,9 +121,12 @@ if [[ "$METHOD" == "slurm" ]]; then
 elif [[ "$METHOD" == "personal" ]]; then
     echo "[INFO] Running experiments on personal server"
     if [[ "$ARTIFACT" == "all" ]]; then
-        echo "[INFO] The script does not support to run all experiments without SLRUM. You can manually run each experiment following the instructions"
+        echo "[INFO] We highly recommend running the main experiments and reviewing the results first before proceeding with all experiments if using a personal server. Running all experiments on a personal server with limited resources (e.g., < 256GB DRAM and < 40 cores) can take a significant amount of time, potentially taking up to a week."
+        echo "[INFO] Running experiments for Figure 14 and 15"
+        bash "$PWD/run_ps_fig14_15.sh"
+        bash "$PWD/run_ps_except_main_results.sh"
     elif [[ "$ARTIFACT" == "main" ]]; then
-            echo "[INFO] Running main experiments only"
+        echo "[INFO] Running main experiments (Figure 14 and 15)"
         bash "$PWD/run_ps_fig14_15.sh"
     else
         echo "[ERROR] Invalid artifact choice: $ARTIFACT"

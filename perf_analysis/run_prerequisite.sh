@@ -23,6 +23,7 @@ else
   python3 ./download_traces.py
   echo "Decompressing the traces into the cputraces directory"
   tar -xzvf cputraces.tar.gz --no-same-owner -C cputraces/
+  rm -r cputraces.tar.gz
 fi
 
 ## 3. Build Ramulator2

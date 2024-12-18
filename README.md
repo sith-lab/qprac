@@ -15,8 +15,7 @@ The performance evaluation infrastructure in this artifact has been adapted from
 ### Requirements
 
 **Security Evaluations:**
-- Python3 (Tested on V3.11.5)
-- Python3 Package `matplotlib` (V3.4.0 or higher is required) for plotting
+- **Python3** (Tested on V3.11.5)
 
 **Performance Evaluations:**  
 - Software Dependencies:
@@ -32,7 +31,7 @@ Please run the following steps to regenerate the security analysis and figures:
 
 ### Clone the artifact and run the code.
   - **Fetch the code:** `git clone https://github.com/sith-lab/qprac.git`
-  - **Run Artifact:**
+  - **Run Artifact with regeneration of data (monte-carlo analysis) (slower - 2 hours):**
     ```
       $ cd qprac/security_analysis
       $ bash ./run_artifact.sh
@@ -41,11 +40,6 @@ Please run the following steps to regenerate the security analysis and figures:
     ```
       $ cd qprac/security_analysis
       $ bash ./run_artifact.sh --use-sample
-    ```
-  - **Run Artifact with regeneration of data (monte-carlo analysis) (slower - 2 hours):**
-    ```
-      $ cd qprac/security_analysis
-      $ bash ./run_artifact.sh
     ```
 These scripts execute the following commands outlined below.
 

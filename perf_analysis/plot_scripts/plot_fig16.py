@@ -72,14 +72,20 @@ for idx, tick in enumerate(x_ticks):
     base_x = x_tick_positions[idx]
     bar_positions[tick] = [base_x - (bar_width * num_bars) / 2 + j * bar_width for j in range(num_bars)]
 
-# Plot bars
+# Add text on bars where the value is 0
 for tick in x_ticks:
     subset = df_filtered[df_filtered['PRAC_level'] == tick]
     for i, prac_impl in enumerate(df_filtered['PRAC_Implementation'].unique()):
         value = subset[subset['PRAC_Implementation'] == prac_impl]['Performance_Overhead'].values[0]
         x_position = bar_positions[tick][i] + bar_width / 2  # Adjust position for centering
         color = colors[prac_impl]
-        ax.bar(x_position, value, width=bar_width, color=color, edgecolor='black', label=prac_impl if tick == x_ticks[0] else "")
+        # Plot the bar
+        bar = ax.bar(x_position, value, width=bar_width, color=color, edgecolor='black', label=prac_impl if tick == x_ticks[0] else "")
+        # Add text if the value is 0
+        if value == 0:
+            ax.text(x_position, 0, '0', ha='center', va='bottom', fontsize=16, color='red')
+
+
 
 # ax.legend(by_label.values(), by_label.keys(), loc='best', ncol=1, fancybox=True, shadow=False, fontsize=15)
 ax.legend(loc='upper left', bbox_to_anchor=(0, 1.06), ncol=1, fancybox=True, shadow=False, fontsize=15)

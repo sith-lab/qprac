@@ -12,7 +12,8 @@ You can reproduce our security and performance evaluations as follows.
 ## Acknowledgement   
 The performance evaluation infrastructure in this artifact has been adapted from [SRS (HPCA 2023)](https://github.com/STAR-Laboratory/scale-srs) and [BreakHammer (MICRO 2024)](https://github.com/CMU-SAFARI/BreakHammer).
 
-### Requirements
+## Requirements
+**Run-time Environment:**  We suggest using a Linux distribution compatible with g++-10 or newer for the performance evaluations. For example, Ubuntu 22.04 or later is recommended if you prefer Ubuntu. This artifact has been tested on Ubuntu 22.04 and Rocky Linux 9.4.
 
 **Security Evaluations:**
 - **Python3** (Tested on V3.11.5)
@@ -139,7 +140,7 @@ Below are the steps run by our above script in an automated manner.
 
 ### Requirements
 #### Software Dependencies
-- **g++** with C++20 support (tested with version 12.4.0).
+- **g++** with C++20 support (recommended: g++ version 10 or above and tested with version 11.4.0 and 12.4.0).
 - **Python3** (recommended: version 3.10 or above).
 
 #### Hardware Dependencies
@@ -157,12 +158,12 @@ git clone https://github.com/sith-lab/qprac.git
 
 #### 2. Set Simulation Configuration Parameters
 
-##### Using SLURM
-Configure the following parameters in `./perf_analysis/run_artifact.sh` or relevant SLURM scripts (`run_slurm_fig*.sh`):
-- **`SLURM_PART_NAME`**: Partition name for SLURM jobs.
+##### Using [Slurm](https://slurm.schedmd.com/documentation.html)
+Configure the following parameters in `./perf_analysis/run_artifact.sh` or relevant [Slurm](https://slurm.schedmd.com/documentation.html) scripts (`run_slurm_fig*.sh`):
+- **`SLURM_PART_NAME`**: Partition name for Slurm jobs.
 - **`SLURM_PART_DEF_MEM`**: Default memory size for jobs (recommended: ≥4GB).
 - **`SLURM_PART_BIG_MEM`**: Memory size for jobs requiring large memory (recommended: ≥12GB).
-- **`MAX_SLURM_JOBS`**: Maximum number of SLURM jobs submitted.
+- **`MAX_SLURM_JOBS`**: Maximum number of Slurm jobs submitted.
 
 ##### Using a Personal Server
 Configure the following parameter in `./perf_analysis/run_artifact.sh` or `run_ps_fig*.sh`:
@@ -174,7 +175,7 @@ Run the following commands to install dependencies, build Ramulator2, and execut
 
 
 ##### Main Experiments Only (Figures 14 and 15)
-- **Using SLURM**: Faster (~16 hours on a cluster with 500+ cores).
+- **Using Slurm**: Faster (~16 hours on a cluster with 500+ cores).
   ```bash
   cd perf_analysis/
   bash ./run_artifact.sh --method slurm --artifact main
@@ -185,13 +186,13 @@ Run the following commands to install dependencies, build Ramulator2, and execut
   bash ./run_artifact.sh --method personal --artifact main
   ```
 
-##### All Experiments (Figures 14–18)
-- **Using SLURM**: Faster (~1 day on a cluster with 500+ cores).
+##### All Experiments (Figures 14–20)
+- **Using Slurm**: Faster (~1 day on a cluster with 500+ cores).
   ```bash
   cd perf_analysis/
   bash ./run_artifact.sh --method slurm --artifact all
   ```
-- **Using a Personal Server**: Slower (~5 days on an Intel Xeon with 128GB memory).   
+- **Using a Personal Server**: Slower (~6 days on an Intel Xeon with 128GB memory).   
   Running all experiments on a personal server may take significant time (days to a week). Thus, we highly recommend reviewing the results for main results (Figure 14 and 15) first before proceeding with all experiments if using a personal server with limited resources (e.g., < 256GB DRAM).
   ```bash
   cd perf_analysis/
@@ -207,12 +208,18 @@ cd perf_analysis/
 bash ./plot_main_figures.sh
 ```
 
-##### All Figures (Figures 14–18)
+<!-- Remove this later after AE -->
+##### Figures 19 to 20 (Figures 19–20)
+```bash
+cd perf_analysis/
+bash ./plot_fig19_20.sh
+```
+
+##### All Figures (Figures 14–20)
 ```bash
 cd perf_analysis/
 bash ./plot_all_figures.sh
 ```
-
 ---
 
 ### Detailed Steps
@@ -226,12 +233,12 @@ Install Python dependencies, download required traces, and build Ramulator2:
 
 #### Execution
 Set simulation configuration parameters:
-- **SLURM**: Configure `SLURM_PART_NAME`, `SLURM_PART_DEF_MEM`, `SLURM_PART_BIG_MEM`, and `MAX_SLURM_JOBS` in `run_slurm_fig*.sh`.
+- **Slurm**: Configure `SLURM_PART_NAME`, `SLURM_PART_DEF_MEM`, `SLURM_PART_BIG_MEM`, and `MAX_SLURM_JOBS` in `run_slurm_fig*.sh`.
 - **Personal Server**: Configure `PERSONAL_RUN_THREADS` in `run_ps_fig*.sh`.
 
 #### Run experiments: 
 
-##### Using SLURM
+##### Using Slurm
 - **Main Results (Figures 14 and 15)**:
   ```bash
   cd perf_analysis/
@@ -253,6 +260,11 @@ Set simulation configuration parameters:
   bash run_slurm_fig18.sh
   ```
 
+- **Figure 20: Comparison with In-DRAM Mitigations for Ultra-Low TRH**:
+  ```bash
+  cd perf_analysis/
+  bash run_slurm_fig20.sh
+  ```
 ##### Using a Personal Server
 - **Main Results (Figures 14 and 15)**:
   ```bash
@@ -274,7 +286,11 @@ Set simulation configuration parameters:
   cd perf_analysis/
   bash run_ps_fig18.sh
   ```
-
+- **Figure 20: Comparison with In-DRAM Mitigations for Ultra-Low TRH**:
+  ```bash
+  cd perf_analysis/
+  bash run_ps_fig20.sh
+  ```
 #### Collate Results
 Once simulations complete, generate CSV files using the commands below. Generated csv files can be found in `perf_analysis/results/csvs/`.
 - **Main Results (Figures 14 and 15)**:
@@ -294,7 +310,14 @@ Once simulations complete, generate CSV files using the commands below. Generate
   ```bash
   python3 generate_csv_fig18.py
   ```
-
+- **Figure 19**:
+  ```bash
+  bash generate_csv_fig19.sh
+  ```
+- **Figure 20**:
+  ```bash
+  python3 generate_csv_fig20.py
+  ```
 #### Generate Plots
 After collating results, generate the plots in using the commands below. Alternatively, use the Jupyter Notebook (`perf_analysis/plot_scripts/plot.ipynb`). Generated PDFs can be found in `perf_analysis/results/plots/`.
 - **Main Results (Figures 14 and 15)**:
@@ -313,4 +336,12 @@ After collating results, generate the plots in using the commands below. Alterna
 - **Figure 18**:
   ```bash
   python3 plot_fig18.py
+  ```
+- **Figure 19**:
+  ```bash
+  python3 plot_fig19.py
+  ```
+- **Figure 20**:
+  ```bash
+  python3 plot_fig20.py
   ```

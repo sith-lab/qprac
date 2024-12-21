@@ -13,6 +13,9 @@ for mitigation in mitigation_list:
     result_path = multi_cores_out_path + "/" + mitigation +"/stats/"
     result_list = [x[:-4] for x in os.listdir(result_path) if x.endswith(".txt")]
     for result_filename in result_list:
+        # Process only files starting with '32_'
+        if mitigation == "Baseline" and not result_filename.startswith("32_"):
+            continue
         result_file = open(result_path + result_filename + ".txt", "r")
         NBO = int(result_filename.split("_")[0])
         if NBO != 32:

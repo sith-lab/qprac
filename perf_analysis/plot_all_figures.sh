@@ -15,7 +15,7 @@ echo "[INFO] Collating Results for Figure 18"
 python3 generate_csv_fig18.py
 
 echo "[INFO] Collating Results for Figure 19"
-python3 generate_csv_fig19.sh
+bash generate_csv_fig19.sh
 
 echo "[INFO] Collating Results for Figure 20"
 python3 generate_csv_fig20.py

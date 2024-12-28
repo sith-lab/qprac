@@ -18,7 +18,7 @@ def load_sense_NBO(filename):
     return len_list
 
 def flip(items, ncol):
-    return itertools.chain(*[items[i::ncol] for i in range(ncol)])
+    return list(itertools.chain(*[items[i::ncol] for i in range(ncol)]))
 
 len_file = "./fig19.out"
 len_list = load_sense_NBO(len_file)

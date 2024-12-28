@@ -4,7 +4,7 @@
 INPUT_FILE="fig19.out"
 OUTPUT_FILE="../results/csvs/fig19.csv"
 
-python bw_degradation_fig19.py > "$INPUT_FILE"
+python3 bw_degradation_fig19.py > "$INPUT_FILE"
 
 
 # Headers for the CSV file

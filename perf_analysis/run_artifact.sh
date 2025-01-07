@@ -111,6 +111,8 @@ if [[ "$METHOD" == "slurm" ]]; then
         SLURM_PART_NAME="$SLURM_PART_NAME" SLURM_PART_DEF_MEM="$SLURM_PART_DEF_MEM" SLRUM_PART_BIG_MEM="$SLRUM_PART_BIG_MEM" bash "$PWD/run_slurm_fig17.sh"
         echo "[INFO] Running experiments for Figure 18"
         SLURM_PART_NAME="$SLURM_PART_NAME" SLURM_PART_DEF_MEM="$SLURM_PART_DEF_MEM" SLRUM_PART_BIG_MEM="$SLRUM_PART_BIG_MEM" bash "$PWD/run_slurm_fig18.sh"
+        echo "[INFO] Running experiments for Figure 20"
+        SLURM_PART_NAME="$SLURM_PART_NAME" SLURM_PART_DEF_MEM="$SLURM_PART_DEF_MEM" SLRUM_PART_BIG_MEM="$SLRUM_PART_BIG_MEM" bash "$PWD/run_slurm_fig20.sh"        
     elif [[ "$ARTIFACT" == "main" ]]; then
         echo "[INFO] Running main experiments (Figure 14 and 15)"
         SLURM_PART_NAME="$SLURM_PART_NAME" SLURM_PART_DEF_MEM="$SLURM_PART_DEF_MEM" SLRUM_PART_BIG_MEM="$SLRUM_PART_BIG_MEM" bash "$PWD/run_slurm_fig14_15.sh"

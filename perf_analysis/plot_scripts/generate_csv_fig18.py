@@ -25,6 +25,9 @@ for mitigation in mitigation_list:
         psq_size = int(result_filename.split("_")[2])
         if psq_size != 5:
             continue
+        targeted_ref_ratio = int(result_filename.split("_")[3])
+        if targeted_ref_ratio != 1:
+            continue
         workload = "_".join(result_filename.split("_")[4:])
 
         w0=''

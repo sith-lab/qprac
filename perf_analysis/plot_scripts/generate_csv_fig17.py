@@ -10,7 +10,7 @@ multi_cores_out_path = '../results'
 df = pd.DataFrame(columns=["workload"])
 df_baseline = pd.DataFrame(columns=["workload"])
 
-mitigation_list = ["Baseline", "QPRAC", "QPRAC+1Proactive_per_4tREFI", "QPRAC+1Proactive_per_2tREFI", "QPRAC+1Proactive_per_1tREFI"]
+mitigation_list = ["Baseline", "QPRAC", "QPRAC+1Proactive_per_5tREFI", "QPRAC+1Proactive_per_4tREFI", "QPRAC+1Proactive_per_3tREFI", "QPRAC+1Proactive_per_2tREFI", "QPRAC+1Proactive_per_1tREFI"]
 for mitigation in mitigation_list:
     result_path = multi_cores_out_path + "/" + mitigation +"/stats/"
     result_list = [x[:-4] for x in os.listdir(result_path) if x.endswith(".txt")]
@@ -186,7 +186,7 @@ def add_all_workloads_geomean_rows(df):
     
     return pd.concat([df, geomean_df], ignore_index=True)
 
-mitigation_list = ["QPRAC", "QPRAC+1Proactive_per_4tREFI", "QPRAC+1Proactive_per_2tREFI", "QPRAC+1Proactive_per_1tREFI"]
+mitigation_list = ["QPRAC", "QPRAC+1Proactive_per_5tREFI", "QPRAC+1Proactive_per_4tREFI", "QPRAC+1Proactive_per_3tREFI", "QPRAC+1Proactive_per_2tREFI", "QPRAC+1Proactive_per_1tREFI"]
 new_column_order = ['workload', 'PSQ_size'] + mitigation_list
 
 geomean_df = add_geomean_rows(df_ws)
@@ -198,4 +198,4 @@ csv_dir = '../results/csvs'
 os.makedirs(csv_dir, exist_ok=True)
 
 # Save the CSV file
-geomean_df.to_csv(os.path.join(csv_dir, 'QPRAC_PSQ_size_Results.csv'), index=False)
+geomean_df.to_csv(os.path.join(csv_dir, 'QPRAC_PSQ_size_Results_Updated.csv'), index=False)

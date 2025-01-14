@@ -365,32 +365,43 @@ private:
             return false;
         }
 
-        void replace_psq_entry(auto row_addr) {
+        bool replace_psq_entry(auto row_addr) {
             auto min_entry = std::min_element(m_psq.begin(), m_psq.end(), 
                     [](const auto& lhs, const auto& rhs) {
                         return lhs.second < rhs.second;
                     });
-            if (m_debug){
-                std::printf("Current Minimum Row Id: %d, Cnt: %d\n", min_entry->first, min_entry->second);
-                std::printf("Accesed Row Id: %d, Cnt: %d\n", row_addr, m_counters[row_addr]);
-            }
+            // if (m_debug){
+            //     std::printf("Current Minimum Row Id: %d, Cnt: %d\n", min_entry->first, min_entry->second);
+            //     std::printf("Accesed Row Id: %d, Cnt: %d\n", row_addr, m_counters[row_addr]);
+            // }
+            // Replacement is performed --> Return true;
             if (m_counters[row_addr] > min_entry->second) {
                 if (m_debug)
                     std::printf("Replace Row %d with Row %d\n", min_entry->first, row_addr);
                 m_psq[row_addr] = m_counters[row_addr];
-                m_psq.erase(min_entry);
+                if (min_entry->second >= m_alert_thresh){
+                    // Remove this entry from critical entry since this row cannot be tracked from DRAM
+                    m_critical_rows.erase(min_entry->first);
+                }
+                m_psq.erase(min_entry->first);
+                return true;
             }
+            return false;
         }
 
-        void update_psq(auto row_addr) {
+        // Return values:
+        // 0: If it's internally incremented, 1: If it's inserted w/o replacement 
+        // -1: If it's not inserted, 2: If it's inserted w/ replacement
+        int update_psq(auto row_addr) {
             // 1. Check if entry is already in the PSQ
             if (m_psq.find(row_addr) != m_psq.end()) {
                 m_psq[row_addr]++;
+                return 0;
             }
             else{
                 // 2.1 Check if counter reaches enqueueing threshold
                 if (m_counters[row_addr] < m_enqueuing_th) {
-                    return;
+                    return - 1;
                 }
                 else {
                     //2.2 Insert or replace the entry
@@ -399,10 +410,14 @@ private:
                     if(!is_psq_full()) {
                         //2.2.2 Insert the entry into the empty space
                         m_psq[row_addr] = m_counters[row_addr];
+                        return 1;
                     }
                     else {
                         //2.2.3 Replace the entry
-                        replace_psq_entry(row_addr);
+                        if(replace_psq_entry(row_addr))
+                            return 2;
+                        else
+                            return -1;
                     }
                 }
             }
@@ -420,11 +435,22 @@ private:
                         m_counters[top_victim] = 0;
                     }
                     m_counters[top_victim]++;
-                    update_psq(top_victim);
-
-                    if (m_counters[top_victim] >= m_alert_thresh) {
-                        m_critical_rows[top_victim] = m_counters[top_victim];
-                        m_is_abo_needed = true;
+                    // If current row is not inserted into psq then do nothing
+                    int update_type = update_psq(top_victim);
+                    if (update_type == -1){
+                        return;
+                    }
+                    else if(update_type >= 0 && update_type <=2){
+                        // Asserts Alert if counter reaches NBO and the row is in PSQ
+                        if (m_counters[top_victim] >= m_alert_thresh) {
+                            // PSQ Counter should be the same as in-DRAM counter
+                            if (m_counters[top_victim] != m_psq[top_victim]){
+                                std::printf("[TOP VICTIM UPDATE][ERROR!] PSQ counter: %lu, and In-DRAM counter: %lu, Have Different Values!\n", m_counters[top_victim], m_psq[top_victim]);
+                                assert(m_counters[top_victim] == m_psq[top_victim]);
+                            }
+                            m_critical_rows[top_victim] = m_counters[top_victim];
+                            m_is_abo_needed = true;
+                        }
                     }
                 }
             }
@@ -439,11 +465,23 @@ private:
                         m_counters[bottom_victim] = 0;
                     }
                     m_counters[bottom_victim]++;
-                    update_psq(bottom_victim);
+                    int update_type = update_psq(bottom_victim);
 
-                    if (m_counters[bottom_victim] >= m_alert_thresh) {
-                        m_critical_rows[bottom_victim] = m_counters[bottom_victim];
-                        m_is_abo_needed = true;
+                    // If current row is not inserted into psq then do nothing
+                    if (update_type == -1){
+                        return;
+                    }
+                    else if(update_type >= 0 && update_type <=2){
+                        // Asserts Alert if counter reaches NBO and the row is in PSQ
+                        if (m_counters[bottom_victim] >= m_alert_thresh) {
+                            // PSQ Counter should be the same as in-DRAM counter
+                            if (m_counters[bottom_victim] != m_psq[bottom_victim]){
+                                std::printf("[BOTTOM VICTIM UPDATE][ERROR!] PSQ counter: %lu, and In-DRAM counter: %lu, Have Different Values!\n", m_counters[bottom_victim], m_psq[bottom_victim]);
+                                assert(m_counters[bottom_victim] == m_psq[bottom_victim]);
+                            }
+                            m_critical_rows[bottom_victim] = m_counters[bottom_victim];
+                            m_is_abo_needed = true;
+                        }
                     }
                 }
             }
@@ -501,15 +539,32 @@ private:
                 m_counters[row_addr] = 0;
             }
             m_counters[row_addr]++;
-            if (m_debug) {
-                std::printf("[PRAC] [%d] [ACT] Row: %d Act: %u\n",
-                    m_bank_id, row_addr, m_counters[row_addr]);
+            // if (m_debug) {
+            //     std::printf("[PRAC] [%d] [ACT] Row: %d Act: %u\n",
+            //         m_bank_id, row_addr, m_counters[row_addr]);
+            // }
+            // If current row is not inserted into psq then do nothing
+            int update_type = update_psq(row_addr);
+
+            if (update_type == -1){
+                return;
             }
-            if (m_counters[row_addr] >= m_alert_thresh) {
-                m_critical_rows[row_addr] = m_counters[row_addr];
-                m_is_abo_needed = true;
+            else if(update_type >= 0 && update_type <= 2){
+                // Asserts Alert if counter reaches NBO and the row is in PSQ
+                if (m_counters[row_addr] >= m_alert_thresh) {
+                    // PSQ Counter should be the same as in-DRAM counter
+                    if (m_counters[row_addr] != m_psq[row_addr]){
+                        std::printf("[ERROR!] PSQ counter: %lu, and In-DRAM counter: %lu, Have Different Values!\n", m_counters[row_addr], m_psq[row_addr]);
+                        assert(m_counters[row_addr] == m_psq[row_addr]);
+                    }
+                    m_critical_rows[row_addr] = m_counters[row_addr];
+                    m_is_abo_needed = true;
+                }
             }
-            update_psq(row_addr);
+            else {
+                std::printf("[ERROR!] PSQ Update Returns Wrong Value!\n");
+                assert(update_type <= 2);
+            }
         }
 
         void process_rfm(const Request& req) {

@@ -29,27 +29,22 @@ CONTROLLER = "BHDRAMController"
 SCHEDULER = "BHScheduler"
 NUM_RANKS = 2
 
+ADDR_MAPPING = 'MOP4CLXOR'
+
 # # List of evaluated RowHammer mitigation mechanisms
-mitigation_list = ["Baseline", "QPRAC-NoOp", "QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
-# mitigation_list = ["QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
-# mitigation_list = ["QPRAC", "QPRAC+1Proactive_per_1tREFI", "QPRAC+1Proactive_per_2tREFI", "QPRAC+1Proactive_per_4tREFI"]
+mitigation_list = ["Baseline", "QPRAC-NoOp", "QPRAC", "QPRAC+Proactive", 'QPRAC+Proactive-EA', "QPRAC-Ideal"]
+
 # List of evaluated Back-Off thresholds
 NBO_lists = [32]
-# NBO_lists = [16, 64, 128, 256]
 
 ## PRAC Level: # of RFMs per ABO 
 PRAC_levels = [1]
-# PRAC_levels = [2, 4]
-# PRAC_levels = [1, 2, 4]
 
 ## PSQ Sizes
 psq_sizes = [5]
-# psq_sizes = [1,2,3,4]
-# psq_sizes = [1,2,3,4,5]
 
 ## Targeted Refresh ratio (once per X tREFI)
 targeted_ref_ratios = [1]
-# targeted_ref_ratios = [1, 2, 3, 4, 5]
 
 params_list = [
     mitigation_list,
@@ -82,6 +77,7 @@ def add_mitigation(config, mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_r
     config['MemorySystem']['DRAM']['PRAC'] = True
     config['MemorySystem'][CONTROLLER]['impl'] = 'PRACOPTDRAMController'
     config['MemorySystem'][CONTROLLER][SCHEDULER]['impl'] = 'PRACScheduler'
+    config["MemorySystem"]['AddrMapper']["impl"] = ADDR_MAPPING
 
     if mitigation == "Baseline":
         config['MemorySystem'][CONTROLLER][SCHEDULER]['impl'] = 'BHScheduler'
@@ -125,6 +121,20 @@ def add_mitigation(config, mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_r
                 'enable_opportunistic_mitigation': True
             }
         })
+    elif mitigation == "QPRAC+Proactive-EA":
+        config['MemorySystem'][CONTROLLER]['plugins'].append({
+            'ControllerPlugin' : {
+                'impl': 'QPRAC',
+                'abo_delay_acts': PRAC_level,
+                'abo_recovery_refs': PRAC_level,
+                'abo_act_ns': 180,
+                'abo_threshold': NBO,
+                'proactive_mitigation_th': int(NBO/2),
+                'psq_size': PSQ_size,
+                'targeted_ref_frequency': Targeted_REF_ratio,
+                'enable_opportunistic_mitigation': True
+            }
+        })
     elif mitigation == "QPRAC-Ideal":
         config['MemorySystem'][CONTROLLER]['plugins'].append({
             'ControllerPlugin' : {
@@ -135,45 +145,6 @@ def add_mitigation(config, mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_r
                 'abo_threshold': NBO,
                 'psq_size': 131072,
                 'targeted_ref_frequency': Targeted_REF_ratio,
-                'enable_opportunistic_mitigation': True
-            }
-        })
-    elif mitigation == "QPRAC+1Proactive_per_1tREFI":
-        config['MemorySystem'][CONTROLLER]['plugins'].append({
-            'ControllerPlugin' : {
-                'impl': 'QPRAC',
-                'abo_delay_acts': PRAC_level,
-                'abo_recovery_refs': PRAC_level,
-                'abo_act_ns': 180,
-                'abo_threshold': NBO,
-                'psq_size': PSQ_size,
-                'targeted_ref_frequency': 1,
-                'enable_opportunistic_mitigation': True
-            }
-        })
-    elif mitigation == "QPRAC+1Proactive_per_2tREFI":
-        config['MemorySystem'][CONTROLLER]['plugins'].append({
-            'ControllerPlugin' : {
-                'impl': 'QPRAC',
-                'abo_delay_acts': PRAC_level,
-                'abo_recovery_refs': PRAC_level,
-                'abo_act_ns': 180,
-                'abo_threshold': NBO,
-                'psq_size': PSQ_size,
-                'targeted_ref_frequency': 2,
-                'enable_opportunistic_mitigation': True
-            }
-        })
-    elif mitigation == "QPRAC+1Proactive_per_4tREFI":
-        config['MemorySystem'][CONTROLLER]['plugins'].append({
-            'ControllerPlugin' : {
-                'impl': 'QPRAC',
-                'abo_delay_acts': PRAC_level,
-                'abo_recovery_refs': PRAC_level,
-                'abo_act_ns': 180,
-                'abo_threshold': NBO,
-                'psq_size': PSQ_size,
-                'targeted_ref_frequency': 4,
                 'enable_opportunistic_mitigation': True
             }
         })

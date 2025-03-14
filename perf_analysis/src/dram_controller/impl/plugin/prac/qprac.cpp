@@ -9,6 +9,7 @@
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
+#include <random>
 
 namespace Ramulator {
 
@@ -43,11 +44,13 @@ private:
 
     uint32_t m_psq_size = 0;
     uint32_t m_enqueuing_th = 0;
+    uint32_t m_proactive_mitigation_th = 0;
 
     // For mitigations under retention refreshes (Targeted Refresh) -- JESD79-5C.01
     uint32_t m_targeted_ref_frequency = 0; // How often do we perform targeted ref? Ex) Once per tREFI
 
     bool m_enable_opportunistic_mitigation = false; // To study the impact of opportunistic mitigations
+    bool m_random_counter_initializeion; // To start simulation with randomly initialized counter
 
     // Stats 
     uint64_t s_num_recovery = 0; // # of ABOs
@@ -74,10 +77,12 @@ public:
         // For Priority Service Queue configurations
         m_psq_size = param<uint32_t>("psq_size").default_val(5);
         m_enqueuing_th = param<uint32_t>("enqueuing_th").default_val(1);
+        m_proactive_mitigation_th = param<uint32_t>("proactive_mitigation_th").default_val(0);
         // For Targeted Refresh
         m_targeted_ref_frequency = param<uint32_t>("targeted_ref_frequency").default_val(1);
     
         m_enable_opportunistic_mitigation = param<bool>("enable_opportunistic_mitigation").default_val(true);
+        m_random_counter_initializeion = param<bool>("random_counter_initializeion").default_val(false);
     }
 
     void setup(IFrontEnd* frontend, IMemorySystem* memory_system) override {
@@ -98,7 +103,7 @@ public:
 
         m_bank_counters.reserve(m_cfg.m_num_banks);
         for (int i = 0; i < m_cfg.m_num_banks; i++) {
-            m_bank_counters.emplace_back(i, m_cfg, m_is_abo_needed, m_abo_thresh, m_debug, m_psq_size, m_enqueuing_th, m_targeted_ref_frequency, m_enable_opportunistic_mitigation, s_num_total_mitigations, s_num_targeted_ref, s_qprac_total_dynamic_energy);
+            m_bank_counters.emplace_back(i, m_cfg, m_is_abo_needed, m_abo_thresh, m_debug, m_psq_size, m_enqueuing_th, m_proactive_mitigation_th, m_targeted_ref_frequency, m_enable_opportunistic_mitigation, s_num_total_mitigations, s_num_targeted_ref, s_qprac_total_dynamic_energy, m_random_counter_initializeion);
         }
 
         register_stat(s_num_recovery).name("prac_num_recovery");
@@ -259,10 +264,11 @@ public:
 private:
     class PerBankCounters {
     public: 
-        PerBankCounters(int bank_id, DeviceConfig& cfg, bool& is_abo_needed, int alert_thresh, bool debug, uint32_t psq_size, uint32_t enqueuing_th, uint32_t targeted_ref_frequency, bool enable_opportunistic_mitigation, uint64_t& num_total_mitigations, uint64_t& num_targeted_ref, double& qprac_total_dynamic_energy)
+        PerBankCounters(int bank_id, DeviceConfig& cfg, bool& is_abo_needed, int alert_thresh, bool debug, uint32_t psq_size, uint32_t enqueuing_th, uint32_t proactive_mitigation_th, uint32_t targeted_ref_frequency, bool enable_opportunistic_mitigation, uint64_t& num_total_mitigations, uint64_t& num_targeted_ref, double& qprac_total_dynamic_energy, bool random_counter_initializeion)
         : m_bank_id(bank_id), m_cfg(cfg), m_is_abo_needed(is_abo_needed),
-        m_alert_thresh(alert_thresh), m_debug(debug), m_psq_size(psq_size), m_enqueuing_th(enqueuing_th),
-        m_targeted_ref_frequency(targeted_ref_frequency), m_enable_opportunistic_mitigation(enable_opportunistic_mitigation), s_num_total_mitigations(num_total_mitigations), s_num_targeted_ref(num_targeted_ref), s_qprac_total_dynamic_energy(qprac_total_dynamic_energy){
+        m_alert_thresh(alert_thresh), m_debug(debug), m_psq_size(psq_size), m_enqueuing_th(enqueuing_th), m_proactive_mitigation_th(proactive_mitigation_th),
+        m_targeted_ref_frequency(targeted_ref_frequency), m_enable_opportunistic_mitigation(enable_opportunistic_mitigation), s_num_total_mitigations(num_total_mitigations), 
+        s_num_targeted_ref(num_targeted_ref), s_qprac_total_dynamic_energy(qprac_total_dynamic_energy), m_random_counter_initializeion(random_counter_initializeion){
             init_dram_params(m_cfg.m_dram);
             reset();
         }
@@ -320,6 +326,10 @@ private:
         DeviceConfig& m_cfg;
         bool& m_is_abo_needed;
 
+        // To test impact of counter reset during refreshes.
+        std::mt19937 gen;
+        std::uniform_int_distribution<int> dist;
+
         std::unordered_map<int, uint32_t> m_counters;
         std::unordered_map<int, uint32_t> m_critical_rows;
         std::unordered_map<int, CommandHandler> m_handlertable;
@@ -332,9 +342,10 @@ private:
         std::unordered_map<int, uint32_t> m_psq;
         uint32_t m_psq_size = 0;
         uint32_t m_enqueuing_th = 0;
-        
+        uint32_t m_proactive_mitigation_th = 0;
+
         bool m_enable_opportunistic_mitigation = true;
-       
+        bool m_random_counter_initializeion = false;
         // For Targeted REF
         uint32_t m_targeted_ref_frequency = 0;
         uint64_t m_num_ref = 0;
@@ -505,6 +516,13 @@ private:
                 }
                 return;
             }
+            // 1.2. Only for the targeted refreshes (proactive mitigations)
+            if (mitigation_type == 1 && m_counters[max_entry->first] < m_proactive_mitigation_th){
+                if (m_debug){
+                    std::printf("[TARGETED REF]: MAX CTR is smaller than mitigation threshold! --> Skips Ba: %d Cnt: %lu\n", m_bank_id, m_counters[max_entry->first]);
+                }
+                return;               
+            }
             // 2. Perform mitigations
             // 2.1 Reset counter value and remove the entry from psq
             m_counters[max_entry->first] = 0;
@@ -536,9 +554,25 @@ private:
         void process_act(const Request& req) {
             auto row_addr = req.addr_vec[m_cfg.m_row_level];    
             if (m_counters.find(row_addr) == m_counters.end()) {
-                m_counters[row_addr] = 0;
+                if (!m_random_counter_initializeion){
+                    m_counters[row_addr] = 0; 
+                    m_counters[row_addr]++;
+                }
+                // When simulation starts with randomly inialized counters.
+                else{
+                    gen = std::mt19937(req.addr_vec[1]*2926+m_bank_id*42+row_addr);  
+                    dist = std::uniform_int_distribution<int>(0, m_alert_thresh-1);  
+                    m_counters[row_addr] = dist(gen);  // Assign a random value between 0 and m_alert_thresh
+                    if(m_counters[row_addr] == 0)
+                        m_counters[row_addr]++;
+                    // Debug
+                    if (m_debug)
+                        std::printf("[Debug] Initialize counter for Rank: %d, BG: %d, Bank: %d, Row: %d, CNT Value: %d\n", req.addr_vec[1], req.addr_vec[2], req.addr_vec[3], row_addr, m_counters[row_addr]);
+                }
             }
-            m_counters[row_addr]++;
+            else{
+                m_counters[row_addr]++;
+            }
             // if (m_debug) {
             //     std::printf("[PRAC] [%d] [ACT] Row: %d Act: %u\n",
             //         m_bank_id, row_addr, m_counters[row_addr]);
@@ -556,6 +590,9 @@ private:
                     if (m_counters[row_addr] != m_psq[row_addr]){
                         std::printf("[ERROR!] PSQ counter: %lu, and In-DRAM counter: %lu, Have Different Values!\n", m_counters[row_addr], m_psq[row_addr]);
                         assert(m_counters[row_addr] == m_psq[row_addr]);
+                    }
+                    if (m_debug){
+                        std::printf("[ASSERT ALERT] Bank id %d, Row id %d, counter vlaue %d\n", m_bank_id, row_addr, m_counters[row_addr]);
                     }
                     m_critical_rows[row_addr] = m_counters[row_addr];
                     m_is_abo_needed = true;

@@ -30,7 +30,7 @@ SCHEDULER = "BHScheduler"
 NUM_RANKS = 2
 
 # # List of evaluated RowHammer mitigation mechanisms
-mitigation_list = ["Baseline", "RFMsb-1", "RFMsb-2", "RFMsb-5", "RFMsb-10", "QPRAC-64", "QPRAC-128", "QPRAC-256"]
+mitigation_list = ["RFMsb-1", "RFMsb-2", "RFMsb-5", "RFMsb-10", 'RFMsb-17', "RFMsb-22", 'RFMsb-43', "RFMsb-45", "QPRAC-64", "QPRAC-128", "QPRAC-256", 'QPRAC-512', 'QPRAC-1024']
 
 
 params_list = [
@@ -65,6 +65,7 @@ def add_mitigation(config, mitigation):
                 'abo_act_ns': 180,
                 'abo_threshold': 32,
                 'psq_size': 5,
+                'proactive_mitigation_th': 16,
                 'targeted_ref_frequency': 1,
                 'enable_opportunistic_mitigation': True
             }
@@ -76,7 +77,8 @@ def add_mitigation(config, mitigation):
                 'abo_delay_acts': 1,
                 'abo_recovery_refs': 1,
                 'abo_act_ns': 180,
-                'abo_threshold': 128,
+                'abo_threshold': 100,
+                'proactive_mitigation_th': 50,
                 'psq_size': 5,
                 'targeted_ref_frequency': 1,
                 'enable_opportunistic_mitigation': True
@@ -89,7 +91,36 @@ def add_mitigation(config, mitigation):
                 'abo_delay_acts': 1,
                 'abo_recovery_refs': 1,
                 'abo_act_ns': 180,
-                'abo_threshold': 256,
+                'abo_threshold': 240,
+                'proactive_mitigation_th': 120,
+                'psq_size': 5,
+                'targeted_ref_frequency': 1,
+                'enable_opportunistic_mitigation': True
+            }
+        })
+    elif mitigation == "QPRAC-512":
+        config['MemorySystem'][CONTROLLER]['plugins'].append({
+            'ControllerPlugin' : {
+                'impl': 'QPRAC',
+                'abo_delay_acts': 1,
+                'abo_recovery_refs': 1,
+                'abo_act_ns': 180,
+                'abo_threshold': 500,
+                'proactive_mitigation_th': 250,
+                'psq_size': 5,
+                'targeted_ref_frequency': 1,
+                'enable_opportunistic_mitigation': True
+            }
+        })
+    elif mitigation == "QPRAC-1024":
+        config['MemorySystem'][CONTROLLER]['plugins'].append({
+            'ControllerPlugin' : {
+                'impl': 'QPRAC',
+                'abo_delay_acts': 1,
+                'abo_recovery_refs': 1,
+                'abo_act_ns': 180,
+                'abo_threshold': 1000,
+                'proactive_mitigation_th': 500,
                 'psq_size': 5,
                 'targeted_ref_frequency': 1,
                 'enable_opportunistic_mitigation': True
@@ -139,6 +170,54 @@ def add_mitigation(config, mitigation):
             'ControllerPlugin' : {
                 'impl': 'BATBasedRFM',
                 'bat': 10,
+                'rfm_type': 1,
+                'enable_early_counter_reset': False,
+            }
+        })
+    elif mitigation == "RFMsb-17":
+        config['MemorySystem']['DRAM']['PRAC'] = False
+        config['MemorySystem'][CONTROLLER][SCHEDULER]['impl'] = 'BHScheduler'
+        config['MemorySystem'][CONTROLLER]['impl'] = 'OPTDRAMController'
+        config['MemorySystem'][CONTROLLER]['plugins'].append({
+            'ControllerPlugin' : {
+                'impl': 'BATBasedRFM',
+                'bat': 17,
+                'rfm_type': 1,
+                'enable_early_counter_reset': False,
+            }
+        })
+    elif mitigation == "RFMsb-22":
+        config['MemorySystem']['DRAM']['PRAC'] = False
+        config['MemorySystem'][CONTROLLER][SCHEDULER]['impl'] = 'BHScheduler'
+        config['MemorySystem'][CONTROLLER]['impl'] = 'OPTDRAMController'
+        config['MemorySystem'][CONTROLLER]['plugins'].append({
+            'ControllerPlugin' : {
+                'impl': 'BATBasedRFM',
+                'bat': 22,
+                'rfm_type': 1,
+                'enable_early_counter_reset': False,
+            }
+        })
+    elif mitigation == "RFMsb-43":
+        config['MemorySystem']['DRAM']['PRAC'] = False
+        config['MemorySystem'][CONTROLLER][SCHEDULER]['impl'] = 'BHScheduler'
+        config['MemorySystem'][CONTROLLER]['impl'] = 'OPTDRAMController'
+        config['MemorySystem'][CONTROLLER]['plugins'].append({
+            'ControllerPlugin' : {
+                'impl': 'BATBasedRFM',
+                'bat': 43,
+                'rfm_type': 1,
+                'enable_early_counter_reset': False,
+            }
+        })
+    elif mitigation == "RFMsb-45":
+        config['MemorySystem']['DRAM']['PRAC'] = False
+        config['MemorySystem'][CONTROLLER][SCHEDULER]['impl'] = 'BHScheduler'
+        config['MemorySystem'][CONTROLLER]['impl'] = 'OPTDRAMController'
+        config['MemorySystem'][CONTROLLER]['plugins'].append({
+            'ControllerPlugin' : {
+                'impl': 'BATBasedRFM',
+                'bat': 45,
                 'rfm_type': 1,
                 'enable_early_counter_reset': False,
             }

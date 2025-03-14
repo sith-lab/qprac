@@ -3,7 +3,7 @@
 ## Introduction
 
 This is the code artifact for the paper 
-"QPRAC: Secure and Practical PRAC-based Rowhammer Mitigation using Priority Queues", which will appear in [HPCA 2025](https://hpca-conf.org/2025/). 
+**"QPRAC: Secure and Practical PRAC-based Rowhammer Mitigation using Priority Queues"**, which presented at [HPCA 2025](https://hpca-conf.org/2025/) and received the **Distinguished Artifact Award**. 
 
 Authors: Jeonghyun Woo (University of British Columbia), Shaopeng (Chris) Lin (University of Toronto), Prashant J. Nair (University of British Columbia), Aamer Jaleel (NVIDIA), Gururaj Saileshwar (University of Toronto).
 

@@ -6,7 +6,7 @@ import seaborn as sns
 import os
 import warnings
 
-methods_interested = ["QPRAC-NoOp", "QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]  # Further remove PQ-NoOp if unnecessary
+methods_interested = ["QPRAC-NoOp", "QPRAC", "QPRAC+Proactive", 'QPRAC+Proactive-EA', "QPRAC-Ideal"]  # Further remove PQ-NoOp if unnecessary
 # Read the CSV file
 csv_path = '../results/csvs/QPRAC_ABO_results.csv'
 if not os.path.exists(csv_path):
@@ -17,7 +17,7 @@ df = pd.read_csv(csv_path)
 df_melted = pd.melt(df, id_vars=['workload'], value_vars=methods_interested, var_name='PRAC_Implementation', value_name='num_alert_tREFI')
 
 rename_mapping = {
-    'QPRAC+Proactive': 'QPRAC+Proactive (default)',
+    'QPRAC+Proactive-EA': 'QPRAC+Proactive-EA (default)',
 }
 df_melted['PRAC_Implementation'] = df_melted['PRAC_Implementation'].replace(rename_mapping)
 
@@ -33,7 +33,7 @@ workloads_high_mpki = [
 ]
 df_high_mpki = df_melted[df_melted['workload'].isin(workloads_high_mpki)]
 
-methods_interested = ["QPRAC-NoOp", "QPRAC", "QPRAC+Proactive (default)", "QPRAC-Ideal"]
+methods_interested = ["QPRAC-NoOp", "QPRAC", "QPRAC+Proactive", 'QPRAC+Proactive-EA (default)', "QPRAC-Ideal"]
 df_filtered = df_high_mpki[df_high_mpki['PRAC_Implementation'].isin(methods_interested)]
 df_filtered['PRAC_Implementation'] = pd.Categorical(df_filtered['PRAC_Implementation'], categories=methods_interested, ordered=True)
 

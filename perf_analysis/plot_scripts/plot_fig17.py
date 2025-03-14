@@ -6,9 +6,9 @@ import seaborn as sns
 import os
 import warnings
 
-methods_interested = ["QPRAC", "QPRAC+1Proactive_per_4tREFI", "QPRAC+1Proactive_per_2tREFI", "QPRAC+1Proactive_per_1tREFI"]  # Further remove PQ-NoOp if unnecessary
+methods_interested = ["QPRAC", "EA-QPRAC+1Proactive_per_4tREFI", "EA-QPRAC+1Proactive_per_2tREFI", "EA-QPRAC+1Proactive_per_1tREFI"]
 # Read the CSV file
-csv_path = '../results/csvs/QPRAC_PSQ_size_Results.csv'
+csv_path = '../results/csvs/QPRAC_PSQ_size_Results_Updated.csv'
 if not os.path.exists(csv_path):
     raise FileNotFoundError(f"The file {csv_path} does not exist.")
 df = pd.read_csv(csv_path)
@@ -18,9 +18,9 @@ df_target = df[df['workload'] == 'All (57)']
 df_melted = pd.melt(df_target, id_vars=['workload', 'PSQ_size'], value_vars=methods_interested, var_name='PRAC_Implementation', value_name='WS')
 
 rename_mapping = {
-    'QPRAC+1Proactive_per_4tREFI': 'QPRAC + 1 Proactive per 4 tREFI',
-    'QPRAC+1Proactive_per_2tREFI': 'QPRAC + 1 Proactive per 2 tREFI',
-    'QPRAC+1Proactive_per_1tREFI': 'QPRAC + 1 Proactive per 1 tREFI (default)',
+    'EA-QPRAC+1Proactive_per_4tREFI': 'QPRAC+Proactive-EA: 1 Proactive per 4 tREFI',
+    'EA-QPRAC+1Proactive_per_2tREFI': 'QPRAC+Proactive-EA: 1 Proactive per 2 tREFI',
+    'EA-QPRAC+1Proactive_per_1tREFI': 'QPRAC+Proactive-EA: 1 Proactive per 1 tREFI (default)',
 }
 df_melted['PRAC_Implementation'] = df_melted['PRAC_Implementation'].replace(rename_mapping)
 # Calculate performance overhead
@@ -38,7 +38,7 @@ workloads_high_mpki = [
 ]
 df_high_mpki = df_melted[df_melted['workload'].isin(workloads_high_mpki)]
 
-methods_interested = ["QPRAC", "QPRAC + 1 Proactive per 4 tREFI", "QPRAC + 1 Proactive per 2 tREFI", "QPRAC + 1 Proactive per 1 tREFI (default)",]
+methods_interested = ["QPRAC", "QPRAC+Proactive-EA: 1 Proactive per 4 tREFI", "QPRAC+Proactive-EA: 1 Proactive per 2 tREFI", "QPRAC+Proactive-EA: 1 Proactive per 1 tREFI (default)",]
 df_filtered = df_high_mpki[df_high_mpki['PRAC_Implementation'].isin(methods_interested)]
 df_filtered['PRAC_Implementation'] = pd.Categorical(df_filtered['PRAC_Implementation'], categories=methods_interested, ordered=True)
 
@@ -88,7 +88,7 @@ for tick in x_ticks:
 # Customize legend, labels, and ticks
 handles, labels = ax.get_legend_handles_labels()
 by_label = dict(zip(labels, handles))  # Remove duplicate labels from the legend
-ax.legend(by_label.values(), by_label.keys(), loc='best', ncol=1, fancybox=True, shadow=False, fontsize=15)
+ax.legend(by_label.values(), by_label.keys(), loc='upper right', ncol=1, bbox_to_anchor=(1.0, 1.03), fancybox=True, shadow=False, fontsize=14)
 # Set xticks to specific num_RFM values and ensure correct spacing
 ax.set_xticks(x_tick_positions)
 ax.set_xticklabels(x_ticks)
@@ -99,7 +99,7 @@ ax.axvline(x=3.5, color='grey', linestyle='-', alpha=0.5)
 ax.set_xlabel('Priority-Based Service Queue (PSQ) Size', fontsize=22)
 ax.set_ylabel('Performance \nOverhead (%)', fontsize=22)
 ax.tick_params(axis='both', which='major', labelsize=20)
-ax.set_ylim(0, 7)
+ax.set_ylim(0, 1.49)
 ax.set_xlim(-0.5, 4.5)
 
 plt.tight_layout()

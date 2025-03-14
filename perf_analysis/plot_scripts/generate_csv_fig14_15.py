@@ -8,7 +8,7 @@ import warnings
 multi_cores_out_path = '../results'
 
 df = pd.DataFrame(columns=["workload"])
-mitigation_list = ["Baseline", "QPRAC-NoOp","QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
+mitigation_list = ["Baseline", "QPRAC-NoOp","QPRAC", "QPRAC+Proactive", "QPRAC+Proactive-EA", "QPRAC-Ideal"]
 for mitigation in mitigation_list:
     result_path = multi_cores_out_path + "/" + mitigation +"/stats/"
     result_list = [x[:-4] for x in os.listdir(result_path) if x.endswith(".txt")]
@@ -27,7 +27,7 @@ for mitigation in mitigation_list:
         if psq_size != 5:
             continue
         targeted_ref_ratio = int(result_filename.split("_")[3])
-        if mitigation == "QPRAC+Proactive" and not targeted_ref_ratio == 1:
+        if mitigation in ["QPRAC+Proactive", 'QPRAC+Proactive-EA'] and not targeted_ref_ratio == 1:
             continue
         workload = "_".join(result_filename.split("_")[4:])
 
@@ -226,7 +226,7 @@ def add_all_workloads_amean_rows(df):
     
     return pd.concat([df, amean_df], ignore_index=True)
 
-mitigation_list = ["QPRAC-NoOp","QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
+mitigation_list = ["QPRAC-NoOp","QPRAC", "QPRAC+Proactive", "QPRAC+Proactive-EA",  "QPRAC-Ideal"]
 new_column_order = ['workload', 'NBO'] + mitigation_list
 
 geomean_df = add_geomean_rows(df_ws)

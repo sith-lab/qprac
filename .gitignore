@@ -4,18 +4,16 @@ perf_analysis/build/
 perf_analysis/cputraces
 perf_analysis/run.sh
 perf_analysis/ramulator2
+perf_analysis/results_arxiv
+perf_analysis/libramulator.so
 # Ignore everything in perf_analysis/results/
 perf_analysis/results/*
 
+**/__pycache__/**
 # But do not ignore the csvs/ and plots/ directories
-!perf_analysis/results/csvs/
-!perf_analysis/results/plots/
+# !perf_analysis/results/csvs/
+# !perf_analysis/results/plots/
 !perf_analysis/results/sample_results/
-
-# Ensure that the contents of the csvs/ and plots/ directories are tracked
-!perf_analysis/results/csvs/**
-!perf_analysis/results/plots/** 
-!perf_analysis/results/sample_results/**
 
 # Prerequisites
 *.d

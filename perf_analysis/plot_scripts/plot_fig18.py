@@ -6,7 +6,7 @@ import seaborn as sns
 import os
 import warnings
 
-methods_interested = ["QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]  # Further remove PQ-NoOp if unnecessary
+methods_interested = ["QPRAC", "QPRAC+Proactive", "QPRAC+Proactive-EA", "QPRAC-Ideal"]  # Further remove PQ-NoOp if unnecessary
 # Read the CSV file
 csv_path = '../results/csvs/QPRAC_NBO_Results.csv'
 if not os.path.exists(csv_path):
@@ -18,7 +18,8 @@ df_target = df[df['workload'] == 'All (57)']
 df_melted = pd.melt(df_target, id_vars=['workload', 'NBO'], value_vars=methods_interested, var_name='PRAC_Implementation', value_name='WS')
 
 rename_mapping = {
-    'QPRAC+Proactive': 'QPRAC+Proactive (default)',
+    'QPRAC+Proactive': 'QPRAC+Proactive',
+    'QPRAC+Proactive-EA': 'QPRAC+Proactive-EA (default)',
 }
 df_melted['PRAC_Implementation'] = df_melted['PRAC_Implementation'].replace(rename_mapping)
 # Calculate performance overhead
@@ -36,7 +37,7 @@ workloads_high_mpki = [
 ]
 df_high_mpki = df_melted[df_melted['workload'].isin(workloads_high_mpki)]
 
-methods_interested = ["QPRAC", "QPRAC+Proactive (default)", "QPRAC-Ideal"]
+methods_interested = ["QPRAC", "QPRAC+Proactive", 'QPRAC+Proactive-EA (default)', "QPRAC-Ideal"]
 df_filtered = df_high_mpki[df_high_mpki['PRAC_Implementation'].isin(methods_interested)]
 df_filtered['PRAC_Implementation'] = pd.Categorical(df_filtered['PRAC_Implementation'], categories=methods_interested, ordered=True)
 
@@ -95,7 +96,7 @@ ax.axvline(x=2.5, color='grey', linestyle='-', alpha=0.5)
 ax.set_xlabel('Back-Off Threshold (N$_{BO}$)', fontsize=22)
 ax.set_ylabel('Performance \nOverhead (%)', fontsize=22)
 ax.tick_params(axis='both', which='major', labelsize=20)
-ax.set_ylim(0, 4)
+ax.set_ylim(0, 2.5)
 ax.set_xlim(-0.5, 3.5)
 
 plt.tight_layout()

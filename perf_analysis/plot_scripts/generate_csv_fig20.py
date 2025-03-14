@@ -10,17 +10,20 @@ multi_cores_out_path = '../results'
 df = pd.DataFrame(columns=["workload"])
 df_baseline = pd.DataFrame(columns=["workload"])
 
-mitigation_list = ["Baseline", "RFMsb-1", "RFMsb-2", "RFMsb-5", "RFMsb-10", "QPRAC-64", "QPRAC-128", "QPRAC-256"]
+mitigation_list = ["Baseline", "RFMsb-1", "RFMsb-2", "RFMsb-5", "RFMsb-10", 'RFMsb-17', 'RFMsb-22', 'RFMsb-43', 'RFMsb-45',  "QPRAC-64", "QPRAC-128", "QPRAC-256", 'QPRAC-512', 'QPRAC-1024']
 for mitigation in mitigation_list:
     result_path = multi_cores_out_path + "/" + mitigation +"/stats/"
     result_list = [x[:-4] for x in os.listdir(result_path) if x.endswith(".txt")]
     for result_filename in result_list:
-        # Exclude files starting with '32'
-        if result_filename.startswith("32"):
-            continue
         result_file = open(result_path + result_filename + ".txt", "r")
-        # print(result_filename)
-        workload = result_filename
+        
+        if mitigation == "Baseline":
+            workload = "_".join(result_filename.split("_")[4:])
+        else:
+            workload = result_filename
+
+        # if workload in ["462.libquantum", '505.mcf']:
+        #     continue
 
         w0=''
         w1=''
@@ -108,6 +111,7 @@ for mitigation in mitigation_list:
             })
             df = pd.concat([df, new_row], ignore_index=True)
 
+# print(df_baseline)
 df_baseline = df_baseline.pivot(index=['workload'], columns=['mitigation'], values='WS').reset_index()
 df_ws = df.pivot(index=['workload'], columns=['mitigation'], values='WS').reset_index()
 
@@ -176,7 +180,7 @@ def add_all_workloads_geomean_rows(df):
     
     return pd.concat([df, geomean_df], ignore_index=True)
 
-mitigation_list = ["RFMsb-1", "RFMsb-2", "RFMsb-5", "RFMsb-10", "QPRAC-64", "QPRAC-128", "QPRAC-256"]
+mitigation_list = ["RFMsb-1", "RFMsb-2", "RFMsb-5", "RFMsb-10", 'RFMsb-17', 'RFMsb-22', 'RFMsb-43', 'RFMsb-45',  "QPRAC-64", "QPRAC-128", "QPRAC-256", 'QPRAC-512', 'QPRAC-1024']
 new_column_order = ['workload'] + mitigation_list
 
 geomean_df = add_geomean_rows(df_ws)

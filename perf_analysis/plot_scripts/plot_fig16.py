@@ -6,7 +6,7 @@ import seaborn as sns
 import os
 import warnings
 
-methods_interested = ["QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]  # Further remove PQ-NoOp if unnecessary
+methods_interested = ["QPRAC", "QPRAC+Proactive", "QPRAC+Proactive-EA", "QPRAC-Ideal"]  # Further remove PQ-NoOp if unnecessary
 # Read the CSV file
 csv_path = '../results/csvs/QPRAC_PRAC_Level_Results.csv'
 if not os.path.exists(csv_path):
@@ -18,7 +18,8 @@ df_target = df[df['workload'] == 'All (57)']
 df_melted = pd.melt(df_target, id_vars=['workload', 'PRAC_level'], value_vars=methods_interested, var_name='PRAC_Implementation', value_name='WS')
 
 rename_mapping = {
-    'QPRAC+Proactive': 'QPRAC+Proactive (default)',
+    'QPRAC+Proactive': 'QPRAC+Proactive',
+    'QPRAC+Proactive-EA': 'QPRAC+Proactive-EA (default)',
 }
 df_melted['PRAC_Implementation'] = df_melted['PRAC_Implementation'].replace(rename_mapping)
 # Calculate performance overhead
@@ -36,7 +37,7 @@ workloads_high_mpki = [
 ]
 df_high_mpki = df_melted[df_melted['workload'].isin(workloads_high_mpki)]
 
-methods_interested = ["QPRAC", "QPRAC+Proactive (default)", "QPRAC-Ideal"]
+methods_interested = ["QPRAC", "QPRAC+Proactive", 'QPRAC+Proactive-EA (default)', "QPRAC-Ideal"]
 df_filtered = df_high_mpki[df_high_mpki['PRAC_Implementation'].isin(methods_interested)]
 df_filtered['PRAC_Implementation'] = pd.Categorical(df_filtered['PRAC_Implementation'], categories=methods_interested, ordered=True)
 
@@ -88,7 +89,7 @@ for tick in x_ticks:
 
 
 # ax.legend(by_label.values(), by_label.keys(), loc='best', ncol=1, fancybox=True, shadow=False, fontsize=15)
-ax.legend(loc='upper left', bbox_to_anchor=(0, 1.06), ncol=1, fancybox=True, shadow=False, fontsize=15)
+ax.legend(loc='best', ncol=2, fancybox=True, shadow=False, fontsize=15)
 
 # Set xticks to specific num_RFM values and ensure correct spacing
 ax.set_xticks(x_tick_positions)
@@ -98,8 +99,9 @@ ax.axvline(x=1.5, color='grey', linestyle='-', alpha=0.5)
 ax.set_xlabel('Number of RFMs per Alert Back-Off', fontsize=22)
 ax.set_ylabel('Performance \nOverhead (%)', fontsize=22)
 ax.tick_params(axis='both', which='major', labelsize=20)
-ax.set_ylim(0, 1.5)
+ax.set_ylim(0, 1.16)
 ax.set_xlim(-0.5, 2.5)
+ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
 plt.tight_layout()
 

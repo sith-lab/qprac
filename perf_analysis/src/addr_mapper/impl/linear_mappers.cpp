@@ -4,6 +4,7 @@
 #include "dram/dram.h"
 #include "addr_mapper/addr_mapper.h"
 #include "memory_system/memory_system.h"
+#include <bitset>
 
 namespace Ramulator {
 
@@ -105,17 +106,21 @@ class MOP4CLXOR final : public LinearMapperBase, public Implementation {
 
     void apply(Request& req) override {
       req.addr_vec.resize(m_num_levels, -1);
+
       Addr_t addr = req.addr >> m_tx_offset;
+
       req.addr_vec[m_col_bits_idx] = slice_lower_bits(addr, 2);
-      for (int lvl = 0 ; lvl < m_row_bits_idx ; lvl++)
+      for (int lvl = 0 ; lvl < m_row_bits_idx ; lvl++){
           req.addr_vec[lvl] = slice_lower_bits(addr, m_addr_bits[lvl]);
+      }
       req.addr_vec[m_col_bits_idx] += slice_lower_bits(addr, m_addr_bits[m_col_bits_idx]-2) << 2;
-      req.addr_vec[m_row_bits_idx] = (int) addr;
+      Addr_t row_addr = addr;
+      req.addr_vec[m_row_bits_idx] = slice_lower_bits(row_addr, m_addr_bits[m_row_bits_idx]);
 
       int row_xor_index = 0; 
-      for (int lvl = 0 ; lvl < m_col_bits_idx ; lvl++){
+      for (int lvl = 0 ; lvl < m_row_bits_idx ; lvl++){
         if (m_addr_bits[lvl] > 0){
-          int mask = (req.addr_vec[m_col_bits_idx] >> row_xor_index) & ((1<<m_addr_bits[lvl])-1);
+          int mask = (req.addr_vec[m_row_bits_idx] >> row_xor_index) & ((1<<m_addr_bits[lvl])-1);
           req.addr_vec[lvl] = req.addr_vec[lvl] xor mask;
           row_xor_index += m_addr_bits[lvl];
         }

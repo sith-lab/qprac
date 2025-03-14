@@ -10,7 +10,7 @@ multi_cores_out_path = '../results'
 df = pd.DataFrame(columns=["workload"])
 df_baseline = pd.DataFrame(columns=["workload"])
 
-mitigation_list = ["Baseline", "QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
+mitigation_list = ["Baseline", "QPRAC", "QPRAC+Proactive", "QPRAC+Proactive-EA", "QPRAC-Ideal"]
 for mitigation in mitigation_list:
     result_path = multi_cores_out_path + "/" + mitigation +"/stats/"
     result_list = [x[:-4] for x in os.listdir(result_path) if x.endswith(".txt")]
@@ -189,7 +189,7 @@ def add_all_workloads_geomean_rows(df):
     
     return pd.concat([df, geomean_df], ignore_index=True)
 
-mitigation_list = ["QPRAC", "QPRAC+Proactive", "QPRAC-Ideal"]
+mitigation_list = ["QPRAC", "QPRAC+Proactive", "QPRAC+Proactive-EA", "QPRAC-Ideal"]
 new_column_order = ['workload', 'PRAC_level'] + mitigation_list
 
 geomean_df = add_geomean_rows(df_ws)

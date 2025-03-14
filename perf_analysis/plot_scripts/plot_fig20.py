@@ -6,7 +6,8 @@ import seaborn as sns
 import os
 import warnings
 
-methods_interested = ["RFMsb-1", "RFMsb-2", "RFMsb-5", "RFMsb-10", "QPRAC-64", "QPRAC-128", "QPRAC-256"]
+methods_interested = ["RFMsb-1", "RFMsb-2", "RFMsb-5", "RFMsb-10", 'RFMsb-17', 'RFMsb-22',
+                      'RFMsb-43', 'RFMsb-45', "QPRAC-64", "QPRAC-128", "QPRAC-256", 'QPRAC-512', 'QPRAC-1024']
 # Read the CSV file
 csv_path = '../results/csvs/QPRAC_In_DRAM_Mitigation_Comparison.csv'
 if not os.path.exists(csv_path):
@@ -20,18 +21,25 @@ row = df_target.iloc[0]  # Extract the first row as a Series
 
 # Create the new dataframe
 new_data = {
-    'TRH': [64, 128, 256],
-    'Mithril': [row['RFMsb-1'], row['RFMsb-2'], row['RFMsb-5']],
-    'PrIDE': [row['RFMsb-2'], row['RFMsb-5'], row['RFMsb-10']],
-    'QPRAC': [row['QPRAC-64'], row['QPRAC-128'], row['QPRAC-256']],
+    'TRH': [64, 128, 256, 512, 1024],
+    'Mithril': [row['RFMsb-1'], row['RFMsb-2'], row['RFMsb-5'], row['RFMsb-17'], row['RFMsb-43']],
+    'PrIDE': [row['RFMsb-2'], row['RFMsb-5'], row['RFMsb-10'], row['RFMsb-22'], row['RFMsb-45']],
+    'QPRAC+Proactive': [row['QPRAC-64'], row['QPRAC-128'], row['QPRAC-256'], row['QPRAC-512'], row['QPRAC-1024']],
 }
-
 new_df = pd.DataFrame(new_data)
 
-methods_interested = ["Mithril", 'PrIDE', 'QPRAC']
+
+methods_interested = ["Mithril", 'PrIDE', 'QPRAC+Proactive']
 
 # Transform the DataFrame for plotting
 df_melted = pd.melt(new_df, id_vars=['TRH'], value_vars=methods_interested, var_name='Mitigations', value_name='WS')
+
+rename_mapping = {
+    'QPRAC+Proactive': 'QPRAC+Proactive-EA',
+}
+df_melted['Mitigations'] = df_melted['Mitigations'].replace(rename_mapping)
+
+methods_interested = ["Mithril", 'PrIDE', 'QPRAC+Proactive-EA']
 
 df_melted['Mitigations'] = pd.Categorical(df_melted['Mitigations'], categories=methods_interested, ordered=True)
 
@@ -52,7 +60,7 @@ colors = {impl: palette[i % len(palette)] for i, impl in enumerate(df_melted['Mi
 
 # Define bar width and x-tick positions
 bar_width = 0.1  # Desired smaller bar width
-x_ticks = [64 ,128, 256]
+x_ticks = [64 ,128, 256, 512, 1024]
 num_bars = len(df_melted['Mitigations'].unique())
 
 # Calculate positions for bars
@@ -85,11 +93,13 @@ ax.set_xticks(x_tick_positions)
 ax.set_xticklabels(x_ticks)
 ax.axvline(x=0.5, color='grey', linestyle='-', alpha=0.5)
 ax.axvline(x=1.5, color='grey', linestyle='-', alpha=0.5)
+ax.axvline(x=2.5, color='grey', linestyle='-', alpha=0.5)
+ax.axvline(x=3.5, color='grey', linestyle='-', alpha=0.5)
 ax.set_xlabel('Supported RowHammer Threshold (T$_{RH}$)', fontsize=22)
 ax.set_ylabel('Normalized \nPerformance', fontsize=22)
 ax.tick_params(axis='both', which='major', labelsize=20)
 ax.set_ylim(0, 1.02)
-ax.set_xlim(-0.5, 2.5)
+ax.set_xlim(-0.5, 4.5)
 
 ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 plt.tight_layout()
@@ -99,4 +109,4 @@ plots_dir = '../results/plots'
 os.makedirs(plots_dir, exist_ok=True)
 
 fig.savefig(os.path.join(plots_dir, 'Figure_20.pdf'), dpi=600, bbox_inches='tight')
-print(f"Figure 20 Generated")
+print(f"Updated Figure 20 Generated")

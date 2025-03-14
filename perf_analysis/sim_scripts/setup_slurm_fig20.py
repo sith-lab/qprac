@@ -32,7 +32,7 @@ PARTITION_DEF_MEM = args.partition_default_memory
 PARTITION_BIG_MEM = args.partition_big_memory
 
 #### Customize the SBATCH_CMD if you want to add more options are required (e.g., account, time, etc)
-SBATCH_CMD = "sbatch --cpus-per-task=1 --nodes=1 --ntasks=1
+SBATCH_CMD = "sbatch --cpus-per-task=1 --nodes=1 --ntasks=1"
 
 
 

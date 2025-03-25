@@ -10,8 +10,118 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <random>
+#include <list>
 
 namespace Ramulator {
+
+class CacheLine {
+    public:
+        bool valid;
+        int tag;
+        int counter; // Counter instead of generic data
+        int bank_id;
+    
+        CacheLine() : valid(false), tag(-1), counter(0), bank_id(0) {}
+    };
+    
+    class Set {
+    public:
+        int ways;
+        std::list<std::pair<int, int>> lru_list; // Keeps track of LRU order
+        std::unordered_map<std::string, std::list<std::pair<int, int>>::iterator> lru_map; // Tag -> LRU position
+        std::vector<CacheLine> lines;
+    
+        Set(int n) : ways(n), lines(n) {}
+    
+        int access(int tag, int bank_id = 0) {
+            for (int i = 0; i < ways; i++) {
+                if (lines[i].valid && lines[i].tag == tag && lines[i].bank_id == bank_id) {
+                    updateLRU(tag, bank_id);
+                    return lines[i].counter;
+                }
+            }
+            return -1; // Indicating cache miss
+        }
+    
+        void insert(int tag, int counter, int bank_id = 0) {
+            // If there's an empty spot, use it
+            for (int i = 0; i < ways; i++) {
+                if (!lines[i].valid) {
+                    lines[i].valid = true;
+                    lines[i].tag = tag;
+                    lines[i].counter = counter;  // Initialize counter
+                    lines[i].bank_id = bank_id;
+                    updateLRU(tag, bank_id);
+                    return;
+                }
+            }
+    
+            // Otherwise, evict the LRU entry
+            int evict_tag = lru_list.back().first;
+            int evict_bank = lru_list.back().second;
+            lru_list.pop_back();
+            lru_map.erase(std::to_string(evict_tag) + "_" + std::to_string(evict_bank));
+    
+            // Replace the evicted entry
+            for (int i = 0; i < ways; i++) {
+                if (lines[i].tag == evict_tag && lines[i].bank_id == evict_bank) {
+                    lines[i].tag = tag;
+                    lines[i].valid = true;
+                    lines[i].counter = counter;  // Reset counter
+                    lines[i].bank_id = bank_id;
+                    break;
+                }
+            }
+    
+            updateLRU(tag, bank_id);
+        }
+    
+    private:
+        void updateLRU(int tag, int bank_id) {
+            // Remove if already in LRU list
+            auto key = std::to_string(tag) + "_" + std::to_string(bank_id);
+            if (lru_map.find(key) != lru_map.end()) {
+                lru_list.erase(lru_map[key]);
+            }
+            // Add to front (most recently used)
+            lru_list.push_front({tag, bank_id});
+            lru_map[key] = lru_list.begin();
+        }
+    };
+    
+    class Cache {
+    public:
+        int sets, ways;
+        std::vector<Set> cacheSets;
+        std::hash<int> h;
+        std::hash<std::string> hStr;
+        
+        Cache(){};
+        Cache(int cacheSize, int blockSize, int ways)
+            : ways(ways) {
+            sets = cacheSize / ways;
+            cacheSets = std::vector<Set>(sets, Set(ways));
+        }
+    
+        int access(int address, int bank_id = 0) {
+            int index = h(address) % sets;  // Index selection from row ID
+            int tag = address;                 // Entire row ID acts as tag
+    
+            int result = cacheSets[index].access(tag, bank_id);
+            if (result != -1) {
+                return result;
+            } else {
+                return -1; // First access initializes counter to 1
+            }
+        }
+
+        void insert(int address, int counter, int bank_id = 0) {
+            int index = h(address) % sets;  // Index selection from row ID
+            int tag = address;                 // Entire row ID acts as tag
+            
+            cacheSets[index].insert(tag, counter, bank_id);
+        }
+    };
 
 class QPRAC : public IControllerPlugin, public Implementation, public IPRAC {
     RAMULATOR_REGISTER_IMPLEMENTATION(IControllerPlugin, QPRAC, "QPRAC", "PRAC Inplementation with Priority Service Queue.")
@@ -41,7 +151,7 @@ private:
     bool m_is_abo_needed = false;
 
     bool m_debug = false;
-
+    
     uint32_t m_psq_size = 0;
     uint32_t m_enqueuing_th = 0;
     uint32_t m_proactive_mitigation_th = 0;
@@ -66,6 +176,21 @@ private:
     double s_qprac_total_static_energy = 0.0;  //nJ
     double s_qprac_total_mitigation_energy = 0.0;  //nJ
 
+    // Queue hit rate
+    uint64_t s_queue_misses = 0;
+    uint64_t s_queue_hits = 0;
+
+    // Counter cache hit rate
+    uint64_t s_cache_misses = 0;
+    uint64_t s_cache_hits = 0;
+
+    // Counter cache hit rate
+    uint64_t s_pb_cache_misses = 0;
+    uint64_t s_pb_cache_hits = 0;
+
+    Cache m_counter_cache;
+    uint64_t m_cache_size = 0;
+
 public:
     void init() override { 
         m_debug = param<bool>("debug").default_val(false);
@@ -80,6 +205,9 @@ public:
         m_proactive_mitigation_th = param<uint32_t>("proactive_mitigation_th").default_val(0);
         // For Targeted Refresh
         m_targeted_ref_frequency = param<uint32_t>("targeted_ref_frequency").default_val(1);
+
+        m_cache_size = param<uint32_t>("cache_size").default_val(64);
+        m_counter_cache = Cache(m_cache_size, 16, 4);
     
         m_enable_opportunistic_mitigation = param<bool>("enable_opportunistic_mitigation").default_val(true);
         m_random_counter_initializeion = param<bool>("random_counter_initializeion").default_val(false);
@@ -101,9 +229,16 @@ public:
         register_stat(s_qprac_total_static_energy).name("qprac_static_energy");
         register_stat(s_qprac_total_mitigation_energy).name("qprac_mitigation_energy");
 
+        register_stat(s_queue_misses).name("qprac_q_misses");
+        register_stat(s_queue_hits).name("qprac_q_hits");
+        register_stat(s_cache_misses).name("qprac_cache_misses");
+        register_stat(s_cache_hits).name("qprac_cache_hits");
+        register_stat(s_pb_cache_misses).name("qprac_pb_cache_misses");
+        register_stat(s_pb_cache_hits).name("qprac_pb_cache_hits");
+
         m_bank_counters.reserve(m_cfg.m_num_banks);
         for (int i = 0; i < m_cfg.m_num_banks; i++) {
-            m_bank_counters.emplace_back(i, m_cfg, m_is_abo_needed, m_abo_thresh, m_debug, m_psq_size, m_enqueuing_th, m_proactive_mitigation_th, m_targeted_ref_frequency, m_enable_opportunistic_mitigation, s_num_total_mitigations, s_num_targeted_ref, s_qprac_total_dynamic_energy, m_random_counter_initializeion);
+            m_bank_counters.emplace_back(i, m_cfg, m_is_abo_needed, m_abo_thresh, m_debug, m_psq_size, m_enqueuing_th, m_proactive_mitigation_th, m_targeted_ref_frequency, m_enable_opportunistic_mitigation, s_num_total_mitigations, s_num_targeted_ref, s_qprac_total_dynamic_energy, m_random_counter_initializeion, s_queue_hits, s_queue_misses, s_cache_hits, s_cache_misses, s_pb_cache_hits, s_pb_cache_misses, m_counter_cache, m_cache_size);
         }
 
         register_stat(s_num_recovery).name("prac_num_recovery");
@@ -264,13 +399,15 @@ public:
 private:
     class PerBankCounters {
     public: 
-        PerBankCounters(int bank_id, DeviceConfig& cfg, bool& is_abo_needed, int alert_thresh, bool debug, uint32_t psq_size, uint32_t enqueuing_th, uint32_t proactive_mitigation_th, uint32_t targeted_ref_frequency, bool enable_opportunistic_mitigation, uint64_t& num_total_mitigations, uint64_t& num_targeted_ref, double& qprac_total_dynamic_energy, bool random_counter_initializeion)
+        PerBankCounters(int bank_id, DeviceConfig& cfg, bool& is_abo_needed, int alert_thresh, bool debug, uint32_t psq_size, uint32_t enqueuing_th, uint32_t proactive_mitigation_th, uint32_t targeted_ref_frequency, bool enable_opportunistic_mitigation, uint64_t& num_total_mitigations, uint64_t& num_targeted_ref, double& qprac_total_dynamic_energy, bool random_counter_initializeion, uint64_t& queue_hits, uint64_t& queue_misses, uint64_t& cache_hits, uint64_t& cache_misses, uint64_t& pb_cache_hits, uint64_t& pb_cache_misses, Cache& counter_cache, uint64_t cache_size)
         : m_bank_id(bank_id), m_cfg(cfg), m_is_abo_needed(is_abo_needed),
         m_alert_thresh(alert_thresh), m_debug(debug), m_psq_size(psq_size), m_enqueuing_th(enqueuing_th), m_proactive_mitigation_th(proactive_mitigation_th),
         m_targeted_ref_frequency(targeted_ref_frequency), m_enable_opportunistic_mitigation(enable_opportunistic_mitigation), s_num_total_mitigations(num_total_mitigations), 
-        s_num_targeted_ref(num_targeted_ref), s_qprac_total_dynamic_energy(qprac_total_dynamic_energy), m_random_counter_initializeion(random_counter_initializeion){
+        s_num_targeted_ref(num_targeted_ref), s_qprac_total_dynamic_energy(qprac_total_dynamic_energy), m_random_counter_initializeion(random_counter_initializeion),
+        s_queue_hits(queue_hits), s_queue_misses(queue_misses), s_cache_hits(cache_hits), s_cache_misses(cache_misses), s_pb_cache_hits(pb_cache_hits), s_pb_cache_misses(pb_cache_misses), m_counter_cache(counter_cache), m_cache_size(cache_size){
             init_dram_params(m_cfg.m_dram);
             reset();
+            m_pb_counter_cache = Cache(cache_size, 16, 4);
         }
 
         ~PerBankCounters() {
@@ -352,6 +489,17 @@ private:
 
         // For stats
         uint64_t& s_num_targeted_ref;
+
+        uint64_t& s_queue_hits;
+        uint64_t& s_queue_misses;
+        uint64_t& s_cache_hits;
+        uint64_t& s_cache_misses;
+
+        uint64_t& s_pb_cache_hits;
+        uint64_t& s_pb_cache_misses;
+        Cache& m_counter_cache;
+        Cache m_pb_counter_cache;
+        uint64_t m_cache_size;
         
         // For power related stats
         uint64_t& s_num_total_mitigations;
@@ -394,6 +542,7 @@ private:
                     // Remove this entry from critical entry since this row cannot be tracked from DRAM
                     m_critical_rows.erase(min_entry->first);
                 }
+                m_pb_counter_cache.insert(min_entry->first, m_psq[min_entry->first], 0);
                 m_psq.erase(min_entry->first);
                 return true;
             }
@@ -406,10 +555,29 @@ private:
         int update_psq(auto row_addr) {
             // 1. Check if entry is already in the PSQ
             if (m_psq.find(row_addr) != m_psq.end()) {
+                s_queue_hits++;
                 m_psq[row_addr]++;
                 return 0;
             }
             else{
+                s_queue_misses++;
+
+                // Counter cache hits
+                if (m_counter_cache.access(row_addr, m_bank_id) != -1)
+                    s_cache_hits++;
+                else {
+                    m_counter_cache.insert(row_addr, m_counters[row_addr] , m_bank_id);
+                    s_cache_misses++;
+                }
+
+                if (m_pb_counter_cache.access(row_addr, m_bank_id) != -1)
+                    s_pb_cache_hits++;
+                else {
+                    m_pb_counter_cache.insert(row_addr, m_counters[row_addr] , m_bank_id);
+                    s_pb_cache_misses++;
+                }
+                    
+
                 // 2.1 Check if counter reaches enqueueing threshold
                 if (m_counters[row_addr] < m_enqueuing_th) {
                     return - 1;

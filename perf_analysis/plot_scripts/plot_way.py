@@ -6,25 +6,23 @@ import seaborn as sns
 import os
 import warnings
 
-methods_interested = ['Q_size']  # Further remove PQ-NoOp if unnecessary
+methods_interested = ['Cache_size']  # Further remove PQ-NoOp if unnecessary
 # Read the CSV file
-csv_path = '../results/csvs/QPRAC_5_128_psq_results.csv'
+csv_path = '../results/csvs/QPRAC_4_16_way.csv'
 if not os.path.exists(csv_path):
     raise FileNotFoundError(f"The file {csv_path} does not exist.")
 df = pd.read_csv(csv_path)
 
 # Transform the DataFrame for plotting
-# df = pd.melt(df, id_vars=['workload'], value_vars=methods_interested, var_name='PRAC_Implementation', value_name='Hit rates')
-rename_mapping = {
-    5.0: '5 (Default)',
-    16.0: '16',
-    32.0: '32',
-    64.0: '64',
-    128.0: '128',
-}
-df = df.replace({"Q_size": rename_mapping})
+# df_melted = pd.melt(df, id_vars=['workload'], value_vars=methods_interested, var_name='PRAC_Implementation', value_name='Hit rates')
 print(df)
-# df['PRAC_Implementation'] = df['PRAC_Implementation'].replace(rename_mapping)
+rename_mapping = {
+    4.0: '4-way',
+    8.0: '8-way',
+    16.0: '16-way',
+}
+df = df.replace({"Cache_size": rename_mapping})
+# df_melted['PRAC_Implementation'] = df_melted['PRAC_Implementation'].replace(rename_mapping)
 
 # Filter the data for high MPKI workloads
 workloads_high_mpki = [
@@ -55,7 +53,7 @@ fig, ax = plt.subplots(figsize=(12, 3.7))
 plt.rc('font', size=10)
 xtick_order = workloads_high_mpki
 
-ax = sns.barplot(x='workload', y='QPRAC+Proactive-EA', hue='Q_size', data=df, order=xtick_order, edgecolor='black')
+ax = sns.barplot(x='workload', y='QPRAC+Proactive-EA', hue='Cache_size', data=df, order=xtick_order, edgecolor='black')
 ax.set_xticks(np.arange(len(xtick_order)))
 ax.set_xticklabels(xtick_order, ha='right', rotation=45, fontsize=11)
 
@@ -69,17 +67,17 @@ for tick_label in tick_labels:
 # Add reference lines and labels
 # ax.axhline(y=1.0, color='r', linestyle='-', linewidth=2)
 ax.axvline(30, 0, 1, color='red', linestyle='--', linewidth=2)
-ax.text(33.5, 0.26, 'AMEAN', fontweight='bold')
-ax.set_yticks([x / 100 for x in range(0, 26, 5)], [str(x) + "%" for x in range(0, 26, 5)])
+ax.text(33.5, 1.02, 'AMEAN', fontweight='bold')
+ax.set_yticks([x / 100 for x in range(0, 101, 20)], [str(x) + "%" for x in range(0, 101, 20)])
 
 ax.set_xlabel('')
-ax.set_ylabel('PSQ Hit Rate', fontsize=12)
-ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.27), ncol=5, fancybox=True, shadow=False, fontsize=12)
-ax.set_ylim(0.0, 0.25)
+ax.set_ylabel('Cache Hit Rate', fontsize=12)
+ax.legend(loc='upper center', bbox_to_anchor=(0.65, 1.4), ncol=5, fancybox=True, shadow=False, fontsize=12)
+ax.set_ylim(0.0, 1.0)
 
 # Final touches and save the plot
 plt.grid(True, linestyle=':')
-plt.title("PSQ Hit Rate with Diff. Sizes\nConfig: QPRAC+Proactive-EA", loc='left')
+plt.title("Cache Hit Rate with Diff. Way\nConfig: QPRAC+Proactive-EA, |PSQ|=32, |$|=1024", loc='left')
 plt.tight_layout()
 plt.show()
 
@@ -87,5 +85,5 @@ plt.show()
 plots_dir = '../results/plots'
 os.makedirs(plots_dir, exist_ok=True)
 
-fig.savefig(os.path.join(plots_dir, 'Figure_q_hit.pdf'), dpi=600, bbox_inches='tight')
-print(f"Figure PSQ Hit Rate Generated")
+fig.savefig(os.path.join(plots_dir, 'Figure_way.pdf'), dpi=600, bbox_inches='tight')
+print(f"Figure Cache Hit Rate Generated")

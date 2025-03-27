@@ -4,7 +4,7 @@ import copy
 import argparse
 import pandas as pd
 
-from run_config_cache_hit import *
+from run_config_way import *
 
 argparser = argparse.ArgumentParser(
     prog="RunPersonal",
@@ -119,8 +119,8 @@ def get_multicore_run_commands():
     run_commands = []
     multicore_params = get_multicore_params_list()
     for config in multicore_params:
-        mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_ratio, Cache_size = config
-        stat_str = "cache_" + make_stat_str(config[1:])
+        mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_ratio, Cache_size, Cache_way = config
+        stat_str = "way_" +  make_stat_str(config[1:])
         
         for trace in traces:
             if mitigation == "QPRAC+Proactive-EA":
@@ -136,7 +136,7 @@ def get_multicore_run_commands():
                     
                 config["Frontend"]["traces"] = workload_name_list_dir
 
-                add_mitigation(config, mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_ratio, Cache_size)
+                add_mitigation(config, mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_ratio, Cache_size, Cache_way)
 
                 config_file = open(config_filename, "w")
                 yaml.dump(config, config_file, default_flow_style=False)

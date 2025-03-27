@@ -57,9 +57,9 @@ for mitigation in mitigation_list:
 traces = [
   "401.bzip2",
   "403.gcc",
-  "429.mcf",
+#   "429.mcf",
   "433.milc",
-  "434.zeusmp",
+#   "434.zeusmp",
   "435.gromacs",
   "436.cactusADM",
   "437.leslie3d",
@@ -72,7 +72,7 @@ traces = [
   "459.GemsFDTD",
   "462.libquantum",
   "464.h264ref",
-  "470.lbm",
+#   "470.lbm",
   "471.omnetpp",
   "473.astar",
   "481.wrf",
@@ -85,7 +85,7 @@ traces = [
   "508.namd",
   "510.parest",
   "511.povray",
-  "519.lbm",
+#   "519.lbm",
   "520.omnetpp",
   "523.xalancbmk",
   "525.x264",
@@ -120,7 +120,7 @@ def get_multicore_run_commands():
     multicore_params = get_multicore_params_list()
     for config in multicore_params:
         mitigation, NBO, PRAC_level, PSQ_size, Targeted_REF_ratio = config
-        stat_str = make_stat_str(config[1:])
+        stat_str = "q_" + make_stat_str(config[1:])
         
         for trace in traces:
             if mitigation == "QPRAC+Proactive-EA":

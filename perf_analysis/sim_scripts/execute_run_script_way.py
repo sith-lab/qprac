@@ -3,7 +3,7 @@ import time
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-from run_config_q_hit import *
+from run_config_way import *
 
 argparser = argparse.ArgumentParser(
     prog="ExecuteRunScript",

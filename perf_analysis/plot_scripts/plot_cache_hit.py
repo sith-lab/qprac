@@ -17,8 +17,13 @@ df = pd.read_csv(csv_path)
 # df_melted = pd.melt(df, id_vars=['workload'], value_vars=methods_interested, var_name='PRAC_Implementation', value_name='Hit rates')
 print(df)
 rename_mapping = {
-    'QPRAC+Proactive-EA': 'QPRAC+Proactive-EA (default)',
+    128.0: '128',
+    256.0: '256',
+    512.0: '512',
+    1024.0: '1024',
+    2048.0: '2048',
 }
+df = df.replace({"Cache_size": rename_mapping})
 # df_melted['PRAC_Implementation'] = df_melted['PRAC_Implementation'].replace(rename_mapping)
 
 # Filter the data for high MPKI workloads
@@ -64,16 +69,17 @@ for tick_label in tick_labels:
 # Add reference lines and labels
 # ax.axhline(y=1.0, color='r', linestyle='-', linewidth=2)
 ax.axvline(30, 0, 1, color='red', linestyle='--', linewidth=2)
-ax.text(33.5, 1.02, 'GMEAN', fontweight='bold')
+ax.text(33.5, 1.02, 'AMEAN', fontweight='bold')
 ax.set_yticks([x / 100 for x in range(0, 101, 20)], [str(x) + "%" for x in range(0, 101, 20)])
 
 ax.set_xlabel('')
 ax.set_ylabel('Cache Hit Rate', fontsize=12)
-ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.27), ncol=5, fancybox=True, shadow=False, fontsize=12)
+ax.legend(loc='upper center', bbox_to_anchor=(0.6, 1.4), ncol=5, fancybox=True, shadow=False, fontsize=12)
 ax.set_ylim(0.0, 1.0)
 
 # Final touches and save the plot
 plt.grid(True, linestyle=':')
+plt.title("Cache Hit Rate with Diff. Sizes\nConfig: QPRAC+Proactive-EA, |PSQ| = 5", loc='left')
 plt.tight_layout()
 plt.show()
 

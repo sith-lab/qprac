@@ -13,26 +13,27 @@ for mitigation in mitigation_list:
     result_path = multi_cores_out_path + "/" + mitigation +"/stats/"
     result_list = [x[:-4] for x in os.listdir(result_path) if x.endswith(".txt")]
     for result_filename in result_list:
-        # Process only files starting with '32_'
-        if not result_filename.startswith("32_"):
+        # Process only files starting with 'q_'
+        if not result_filename.startswith("q_"):
             continue
         result_file = open(result_path + result_filename + ".txt", "r")
-        NBO = int(result_filename.split("_")[0])
+        NBO = int(result_filename.split("_")[1])
         if NBO != 32:
             continue
-        prac_level = int(result_filename.split("_")[1])
+        prac_level = int(result_filename.split("_")[2])
         if prac_level != 1:
             continue
-        psq_size = int(result_filename.split("_")[2])
-        cache_size = result_filename.split("_")[4]
+        psq_size = int(result_filename.split("_")[3])
+
+        cache_size = result_filename.split("_")[5]
         if (cache_size.isnumeric() and int(cache_size) in [128, 256, 512, 1024, 2048]):
             continue
         # if psq_size != 5:
         #     continue
-        targeted_ref_ratio = int(result_filename.split("_")[3])
-        if mitigation in ["QPRAC+Proactive", 'QPRAC+Proactive-EA'] and not targeted_ref_ratio == 1:
+        targeted_ref_ratio = int(result_filename.split("_")[4])
+        if mitigation in ['QPRAC+Proactive-EA'] and not targeted_ref_ratio == 1:
             continue
-        workload = "_".join(result_filename.split("_")[4:])
+        workload = "_".join(result_filename.split("_")[5:])
 
         q_hits = 0
         q_misses = 0
@@ -121,7 +122,7 @@ def add_geomean_psq_rows(df):
     
     return pd.concat([df, geomean_df], ignore_index=True)
 
-def add_all_workloads_geomean_psq_rows(df):
+def add_all_workloads_geomean_rows(df):
     geomean_rows = []  # List to collect new rows
     
     for NBO in df['NBO'].unique():
@@ -172,9 +173,9 @@ def calculate_arithmetic_mean(series):
 def add_arithmetic_mean_rows(df):
     amean_rows = []  # List to collect new rows
 
-    for NBO in df['NBO'].unique():
+    for qsize in df['Q_size'].unique():
         for suite_name, workloads in benchmark_suites.items():
-            suite_df = df[(df['workload'].isin(workloads)) & (df['NBO'] == NBO)]
+            suite_df = df[(df['workload'].isin(workloads)) & (df['Q_size'] == qsize)]
             if not suite_df.empty:
                 ameans = {}
                 
@@ -184,7 +185,7 @@ def add_arithmetic_mean_rows(df):
                         ameans[mitigation] = calculate_arithmetic_mean(suite_df[mitigation])
                 
                 # Create a new row
-                amean_row = {'NBO': NBO, 'workload': suite_name, **ameans}
+                amean_row = {'Q_size': qsize, 'workload': suite_name, **ameans}
                 amean_rows.append(amean_row)  # Append to the list
 
     # Convert list of rows to DataFrame
@@ -192,12 +193,14 @@ def add_arithmetic_mean_rows(df):
     
     return pd.concat([df, amean_df], ignore_index=True)
 
+
+
 # Function to add combined geometric means for all workloads in each channel and interface
 def add_all_workloads_amean_rows(df):
     amean_rows = []  # List to collect new rows
     
-    for NBO in df['NBO'].unique():
-            Channel_interface_df = df[(df['NBO'] == NBO)]
+    for qsize in df['Q_size'].unique():
+            Channel_interface_df = df[(df['Q_size'] == qsize)]
             amean_values = {}
 
             # Calculate geometric means for each mitigation in the list
@@ -206,7 +209,7 @@ def add_all_workloads_amean_rows(df):
                     amean_values[mitigation] = calculate_arithmetic_mean(Channel_interface_df[mitigation])
 
             # Create a new row for the combined results
-            amean_row = {'NBO': NBO, 'workload': 'All (57)', **amean_values}
+            amean_row = {'Q_size': qsize, 'workload': 'All (57)', **amean_values}
             amean_rows.append(amean_row)  # Append to the list
     
     # Convert list of rows to DataFrame
@@ -217,13 +220,13 @@ def add_all_workloads_amean_rows(df):
 mitigation_list = ["QPRAC+Proactive-EA"]
 new_column_order = ['workload', 'Q_size'] + mitigation_list
 
-geomean_df = add_geomean_psq_rows(df_hit)
-geomean_df = add_all_workloads_geomean_psq_rows(geomean_df)
-geomean_df = geomean_df[new_column_order]
+amean_df = add_arithmetic_mean_rows(df_hit)
+amean_df = add_all_workloads_amean_rows(amean_df)
+amean_df = amean_df[new_column_order]
 
 # Ensure the results/csvs directory exists
 csv_dir = '../results/csvs'
 os.makedirs(csv_dir, exist_ok=True)
 
 # Save the CSV file
-geomean_df.to_csv(os.path.join(csv_dir, 'QPRAC_5_128_psq_results.csv'), index=False)
+amean_df.to_csv(os.path.join(csv_dir, 'QPRAC_5_128_psq_results.csv'), index=False)

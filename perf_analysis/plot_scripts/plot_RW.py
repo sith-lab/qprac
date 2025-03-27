@@ -6,25 +6,21 @@ import seaborn as sns
 import os
 import warnings
 
-methods_interested = ['Q_size']  # Further remove PQ-NoOp if unnecessary
+methods_interested = ['Cached_R', 'Cached_W', 'Cached_RW']  # Further remove PQ-NoOp if unnecessary
 # Read the CSV file
-csv_path = '../results/csvs/QPRAC_5_128_psq_results.csv'
+csv_path = '../results/csvs/QPRAC_32_and_1024_RW_1K.csv'
 if not os.path.exists(csv_path):
     raise FileNotFoundError(f"The file {csv_path} does not exist.")
 df = pd.read_csv(csv_path)
 
 # Transform the DataFrame for plotting
-# df = pd.melt(df, id_vars=['workload'], value_vars=methods_interested, var_name='PRAC_Implementation', value_name='Hit rates')
+df_melted = pd.melt(df, id_vars=['workload'], value_vars=methods_interested, var_name='RWs', value_name='vals')
 rename_mapping = {
-    5.0: '5 (Default)',
-    16.0: '16',
-    32.0: '32',
-    64.0: '64',
-    128.0: '128',
+    'Cached_R': 'R',
+    'Cached_W': 'W',
+    'Cached_RW': 'RW',
 }
-df = df.replace({"Q_size": rename_mapping})
-print(df)
-# df['PRAC_Implementation'] = df['PRAC_Implementation'].replace(rename_mapping)
+df_melted['RWs'] = df_melted['RWs'].replace(rename_mapping)
 
 # Filter the data for high MPKI workloads
 workloads_high_mpki = [
@@ -36,11 +32,12 @@ workloads_high_mpki = [
     'SPEC2K6 (23)', 'SPEC2K17 (18)', 'TPC (4)', 'Hadoop (3)', 'MediaBench (3)', 
     'YCSB (6)', 'All (57)'
 ]
-# df_high_mpki = df_melted[df_melted['workload'].isin(workloads_high_mpki)]
+df_high_mpki = df_melted[df_melted['workload'].isin(workloads_high_mpki)]
 
-# methods_interested = ['Q_size']
-# df_filtered = df_high_mpki[df_high_mpki['PRAC_Implementation'].isin(methods_interested)]
-# df_filtered['PRAC_Implementation'] = pd.Categorical(df_filtered['PRAC_Implementation'], categories=methods_interested, ordered=True)
+methods_interested = ['R', 'W', 'RW']
+df_filtered = df_high_mpki[df_high_mpki['RWs'].isin(methods_interested)]
+df_filtered['RWs'] = pd.Categorical(df_filtered['RWs'], categories=methods_interested, ordered=True)
+print(df_filtered)
 
 # Set up the plotting environment
 sns.set_palette('tab10')
@@ -55,7 +52,7 @@ fig, ax = plt.subplots(figsize=(12, 3.7))
 plt.rc('font', size=10)
 xtick_order = workloads_high_mpki
 
-ax = sns.barplot(x='workload', y='QPRAC+Proactive-EA', hue='Q_size', data=df, order=xtick_order, edgecolor='black')
+ax = sns.barplot(x='workload', y='vals', hue='RWs', data=df_filtered, order=xtick_order, edgecolor='black')
 ax.set_xticks(np.arange(len(xtick_order)))
 ax.set_xticklabels(xtick_order, ha='right', rotation=45, fontsize=11)
 
@@ -67,19 +64,19 @@ for tick_label in tick_labels:
         tick_label.set_fontweight('bold')
 
 # Add reference lines and labels
-# ax.axhline(y=1.0, color='r', linestyle='-', linewidth=2)
+ax.axhline(y=1.0, color='r', linestyle='-', linewidth=2)
 ax.axvline(30, 0, 1, color='red', linestyle='--', linewidth=2)
-ax.text(33.5, 0.26, 'AMEAN', fontweight='bold')
-ax.set_yticks([x / 100 for x in range(0, 26, 5)], [str(x) + "%" for x in range(0, 26, 5)])
+ax.text(33.5, 1.1, 'GMEAN', fontweight='bold')
+ax.set_yticks([x / 100 for x in range(0, 101, 20)], [str(x) + "%" for x in range(0, 101, 20)])
 
 ax.set_xlabel('')
-ax.set_ylabel('PSQ Hit Rate', fontsize=12)
-ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.27), ncol=5, fancybox=True, shadow=False, fontsize=12)
-ax.set_ylim(0.0, 0.25)
+ax.set_ylabel('Normalized Reduction', fontsize=12)
+ax.legend(loc='upper right', bbox_to_anchor=(0.85, 1.27), ncol=5, fancybox=True, shadow=False, fontsize=12)
+ax.set_ylim(0, 1.08)
 
 # Final touches and save the plot
 plt.grid(True, linestyle=':')
-plt.title("PSQ Hit Rate with Diff. Sizes\nConfig: QPRAC+Proactive-EA", loc='left')
+plt.title("Reduction of Read & Writes to Counter Subarray in Presence of Cache\nConfig: QPRAC+Proactive-EA, |PSQ|=32, |$|=256x4", loc='left')
 plt.tight_layout()
 plt.show()
 
@@ -87,5 +84,5 @@ plt.show()
 plots_dir = '../results/plots'
 os.makedirs(plots_dir, exist_ok=True)
 
-fig.savefig(os.path.join(plots_dir, 'Figure_q_hit.pdf'), dpi=600, bbox_inches='tight')
-print(f"Figure PSQ Hit Rate Generated")
+fig.savefig(os.path.join(plots_dir, 'Figure_RW_1K.pdf'), dpi=600, bbox_inches='tight')
+print(f"Figure Cache Hit Rate Generated")

@@ -14,7 +14,7 @@ for mitigation in mitigation_list:
     result_list = [x[:-4] for x in os.listdir(result_path) if x.endswith(".txt")]
     for result_filename in result_list:
         # Process only files starting with '32_'
-        if not result_filename.startswith("cache_"):
+        if not result_filename.startswith("way_"):
             continue
         result_file = open(result_path + result_filename + ".txt", "r")
         NBO = int(result_filename.split("_")[1])
@@ -24,7 +24,7 @@ for mitigation in mitigation_list:
         if prac_level != 1:
             continue
         psq_size = int(result_filename.split("_")[3])
-        if psq_size != 5:
+        if psq_size != 32:
             continue
         targeted_ref_ratio = int(result_filename.split("_")[4])
         if mitigation in ['QPRAC+Proactive-EA'] and not targeted_ref_ratio == 1:
@@ -32,11 +32,13 @@ for mitigation in mitigation_list:
         targeted_ref_ratio = int(result_filename.split("_")[4])
 
         cache_size = result_filename.split("_")[5]
-        if (not cache_size.isnumeric() or int(cache_size) not in [128, 256, 512, 1024, 2048]):
+        if (not cache_size.isnumeric() or int(cache_size) not in [1024]):
             continue
         cache_size = int(cache_size)
 
-        workload = "_".join(result_filename.split("_")[6:])
+        cache_ways = int(result_filename.split("_")[6])
+
+        workload = "_".join(result_filename.split("_")[7:])
 
         cache_hits = 0
         cache_misses = 0
@@ -56,6 +58,7 @@ for mitigation in mitigation_list:
         cache_hit_rate = 0
         if (cache_hits + cache_misses == 0):
             print(workload)
+            continue
         else:
             cache_hit_rate = cache_hits / (cache_hits + cache_misses)
         
@@ -64,7 +67,7 @@ for mitigation in mitigation_list:
         new_row = pd.DataFrame({
             'workload': [workload],
             'mitigation': [mitigation],
-            'Cache_size': [cache_size],
+            'Cache_size': [cache_ways],
             'Cache_hitrate': [cache_hit_rate],
         })
         df = pd.concat([df, new_row], ignore_index=True)
@@ -239,4 +242,4 @@ csv_dir = '../results/csvs'
 os.makedirs(csv_dir, exist_ok=True)
 
 # Save the CSV file
-geomean_df.to_csv(os.path.join(csv_dir, 'QPRAC_128_2048_cache_results_pb.csv'), index=False)
+geomean_df.to_csv(os.path.join(csv_dir, 'QPRAC_4_16_way.csv'), index=False)

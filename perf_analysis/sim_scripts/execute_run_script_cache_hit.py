@@ -3,7 +3,7 @@ import time
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-from run_config_q_hit import *
+from run_config_cache_hit import *
 
 argparser = argparse.ArgumentParser(
     prog="ExecuteRunScript",
@@ -15,6 +15,8 @@ argparser.add_argument("-s", "--slurm", action="store_true")
 args = argparser.parse_args()
 
 SLURM = args.slurm
+
+os.sched_setaffinity(0, range(70, 110, 1))
 
 def check_running_jobs():
     return int(os.popen(f"squeue -u {SLURM_USERNAME} -h | wc -l").read())

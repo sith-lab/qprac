@@ -14,7 +14,7 @@ for mitigation in mitigation_list:
     result_list = [x[:-4] for x in os.listdir(result_path) if x.endswith(".txt")]
     for result_filename in result_list:
         # Process only files starting with '32_'
-        if not result_filename.startswith("cache_"):
+        if not result_filename.startswith("rw_"):
             continue
         result_file = open(result_path + result_filename + ".txt", "r")
         NBO = int(result_filename.split("_")[1])
@@ -24,7 +24,7 @@ for mitigation in mitigation_list:
         if prac_level != 1:
             continue
         psq_size = int(result_filename.split("_")[3])
-        if psq_size != 5:
+        if psq_size != 32:
             continue
         targeted_ref_ratio = int(result_filename.split("_")[4])
         if mitigation in ['QPRAC+Proactive-EA'] and not targeted_ref_ratio == 1:
@@ -32,46 +32,104 @@ for mitigation in mitigation_list:
         targeted_ref_ratio = int(result_filename.split("_")[4])
 
         cache_size = result_filename.split("_")[5]
-        if (not cache_size.isnumeric() or int(cache_size) not in [128, 256, 512, 1024, 2048]):
+        if (not cache_size.isnumeric() or int(cache_size) not in [1024]):
             continue
         cache_size = int(cache_size)
 
         workload = "_".join(result_filename.split("_")[6:])
 
-        cache_hits = 0
-        cache_misses = 0
-        if (PB):
-            for line in result_file.readlines():
-                if ("qprac_pb_cache_hits" in line):
-                    cache_hits = int(line.split(" ")[-1])
-                if ("qprac_pb_cache_misses" in line):
-                    cache_misses = int(line.split(" ")[-1])
-        else:
-            for line in result_file.readlines():
-                if ("qprac_cache_hits" in line):
-                    cache_hits = int(line.split(" ")[-1])
-                if ("qprac_cache_misses" in line):
-                    cache_misses = int(line.split(" ")[-1])
-
-        cache_hit_rate = 0
-        if (cache_hits + cache_misses == 0):
+        counter_reads = 0
+        counter_writes = 0
+        cached_counter_reads = 0
+        cached_counter_writes = 0
+        num_inst_total = 0
+        for line in result_file.readlines():
+            if ("qprac_counter_reads" in line):
+                counter_reads = int(line.split(" ")[-1])
+            if ("qprac_counter_writes" in line):
+                counter_writes = int(line.split(" ")[-1])
+            if ("qprac_cached_counter_reads" in line):
+                cached_counter_reads = int(line.split(" ")[-1])
+            if ("qprac_cached_counter_writes" in line):
+                cached_counter_writes = int(line.split(" ")[-1])
+            if (" insts_recorded_core_0" in line):
+                num_inst_total += int(line.split(" ")[-1])
+            if (" insts_recorded_core_1" in line):
+                num_inst_total += int(line.split(" ")[-1])
+            if (" insts_recorded_core_2" in line):
+                num_inst_total += int(line.split(" ")[-1])
+            if (" insts_recorded_core_3" in line):
+                num_inst_total += int(line.split(" ")[-1])
+        
+        if (num_inst_total == 0):
             print(workload)
-        else:
-            cache_hit_rate = cache_hits / (cache_hits + cache_misses)
+            continue
+
+        r_per_1k = ((counter_reads) / num_inst_total) * 1000
+        w_per_1k = ((counter_writes) / num_inst_total) * 1000
+        cached_r_per_1k = ((cached_counter_reads) / num_inst_total) * 1000
+        cached_w_per_1k = ((cached_counter_writes) / num_inst_total) * 1000
+        w_per_1k = ((counter_writes) / num_inst_total) * 1000
+        rw_per_1k = ((counter_reads + counter_writes) / num_inst_total) * 1000
+        cached_rw_per_1k = ((cached_counter_reads + cached_counter_writes) / num_inst_total) * 1000
         
         result_file.close()
         # Create a new DataFrame for the new row
         new_row = pd.DataFrame({
             'workload': [workload],
             'mitigation': [mitigation],
-            'Cache_size': [cache_size],
-            'Cache_hitrate': [cache_hit_rate],
+            'NBO': [NBO],
+            'Cache_size': ["RW"],
+            '1K': [rw_per_1k],
+        })
+        df = pd.concat([df, new_row], ignore_index=True)
+        new_row = pd.DataFrame({
+            'workload': [workload],
+            'mitigation': [mitigation],
+            'NBO': [NBO],
+            'Cache_size': ["R"],
+            '1K': [r_per_1k],
+        })
+        df = pd.concat([df, new_row], ignore_index=True)
+        new_row = pd.DataFrame({
+            'workload': [workload],
+            'mitigation': [mitigation],
+            'NBO': [NBO],
+            'Cache_size': ["W"],
+            '1K': [w_per_1k],
+        })
+        df = pd.concat([df, new_row], ignore_index=True)
+        new_row = pd.DataFrame({
+            'workload': [workload],
+            'mitigation': [mitigation],
+            'NBO': [NBO],
+            'Cache_size': ["Cached_RW"],
+            '1K': [cached_rw_per_1k],
+        })
+        df = pd.concat([df, new_row], ignore_index=True)
+        new_row = pd.DataFrame({
+            'workload': [workload],
+            'mitigation': [mitigation],
+            'NBO': [NBO],
+            'Cache_size': ["Cached_R"],
+            '1K': [cached_r_per_1k],
+        })
+        df = pd.concat([df, new_row], ignore_index=True)
+        new_row = pd.DataFrame({
+            'workload': [workload],
+            'mitigation': [mitigation],
+            'NBO': [NBO],
+            'Cache_size': ["Cached_W"],
+            '1K': [cached_w_per_1k],
         })
         df = pd.concat([df, new_row], ignore_index=True)
 
-df_hit = df.pivot(index=['workload', 'Cache_size'], columns=['mitigation'], values='Cache_hitrate').reset_index()
+df_hit = df.pivot(index=['workload', 'NBO'], columns=['Cache_size'], values='1K').reset_index()
+for mitigation in ["Cached_RW", "Cached_R", "Cached_W"]:
+    df_hit[mitigation] = 1 - (df_hit[mitigation] / df_hit[mitigation[7:]])
 
-# print(df_ws)
+for mitigation in ["RW", "R", "W"]:
+    df_hit.drop(columns=[mitigation], inplace=True)
 
 benchmark_suites = {
     'SPEC2K6 (23)': ['401.bzip2', '403.gcc', '429.mcf', '433.milc', '434.zeusmp', '435.gromacs', '436.cactusADM', '437.leslie3d', '444.namd', '445.gobmk', '447.dealII', '450.soplex', '456.hmmer', '458.sjeng', '459.GemsFDTD', '462.libquantum', '464.h264ref', '470.lbm', '471.omnetpp', '473.astar', '481.wrf', '482.sphinx3', '483.xalancbmk'], # SPEC2K6: 23
@@ -87,7 +145,6 @@ benchmark_suites = {
 def calculate_geometric_mean(series):
     return np.prod(series) ** (1 / len(series))
 
-# Function to calculate and add geometric means as new rows
 def add_geomean_rows(df):
     geomean_rows = []  # List to collect new rows
 
@@ -111,30 +168,8 @@ def add_geomean_rows(df):
     
     return pd.concat([df, geomean_df], ignore_index=True)
 
-def add_geomean_psq_rows(df):
-    geomean_rows = []  # List to collect new rows
-
-    for qsize in df['Cache_size'].unique():
-        for suite_name, workloads in benchmark_suites.items():
-            suite_df = df[(df['workload'].isin(workloads)) & (df['Cache_size'] == qsize)]
-            if not suite_df.empty:
-                geomeans = {}
-                
-                # Dynamically calculate geometric means for each mitigation
-                for mitigation in mitigation_list:
-                    if mitigation in suite_df.columns:  # Ensure the column exists
-                        geomeans[mitigation] = calculate_geometric_mean(suite_df[mitigation])
-                
-                # Create a new row
-                geomean_row = {'Cache_size': qsize, 'workload': suite_name, **geomeans}
-                geomean_rows.append(geomean_row)  # Append to the list
-
-    # Convert list of rows to DataFrame
-    geomean_df = pd.DataFrame(geomean_rows)
-    
-    return pd.concat([df, geomean_df], ignore_index=True)
-
-def add_all_workloads_geomean_psq_rows(df):
+# Function to add combined geometric means for all workloads in each channel and interface
+def add_all_workloads_geomean_rows(df):
     geomean_rows = []  # List to collect new rows
     
     for NBO in df['NBO'].unique():
@@ -148,28 +183,6 @@ def add_all_workloads_geomean_psq_rows(df):
 
             # Create a new row for the combined results
             geomean_row = {'NBO': NBO, 'workload': 'All (57)', **geomean_values}
-            geomean_rows.append(geomean_row)  # Append to the list
-    
-    # Convert list of rows to DataFrame
-    geomean_df = pd.DataFrame(geomean_rows)
-    
-    return pd.concat([df, geomean_df], ignore_index=True)
-
-# Function to add combined geometric means for all workloads in each channel and interface
-def add_all_workloads_geomean_psq_rows(df):
-    geomean_rows = []  # List to collect new rows
-    
-    for qsize in df['Cache_size'].unique():
-            Channel_interface_df = df[(df['Cache_size'] == qsize)]
-            geomean_values = {}
-
-            # Calculate geometric means for each mitigation in the list
-            for mitigation in mitigation_list:
-                if mitigation in Channel_interface_df.columns:  # Ensure the column exists
-                    geomean_values[mitigation] = calculate_geometric_mean(Channel_interface_df[mitigation])
-
-            # Create a new row for the combined results
-            geomean_row = {'Cache_size': qsize, 'workload': 'All (57)', **geomean_values}
             geomean_rows.append(geomean_row)  # Append to the list
     
     # Convert list of rows to DataFrame
@@ -227,11 +240,11 @@ def add_all_workloads_amean_rows(df):
     
     return pd.concat([df, amean_df], ignore_index=True)
 
-mitigation_list = ["QPRAC+Proactive-EA"]
-new_column_order = ['workload', 'Cache_size'] + mitigation_list
+mitigation_list = ["Cached_RW", "Cached_R", "Cached_W"]
+new_column_order = ['workload', 'NBO'] + mitigation_list
 
-geomean_df = add_arithmetic_mean_rows(df_hit)
-geomean_df = add_all_workloads_amean_rows(geomean_df)
+geomean_df = add_geomean_rows(df_hit)
+geomean_df = add_all_workloads_geomean_rows(geomean_df)
 geomean_df = geomean_df[new_column_order]
 
 # Ensure the results/csvs directory exists
@@ -239,4 +252,4 @@ csv_dir = '../results/csvs'
 os.makedirs(csv_dir, exist_ok=True)
 
 # Save the CSV file
-geomean_df.to_csv(os.path.join(csv_dir, 'QPRAC_128_2048_cache_results_pb.csv'), index=False)
+geomean_df.to_csv(os.path.join(csv_dir, 'QPRAC_32_and_1024_RW_1K.csv'), index=False)

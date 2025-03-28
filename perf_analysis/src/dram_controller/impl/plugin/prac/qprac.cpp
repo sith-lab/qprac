@@ -300,7 +300,7 @@ public:
 
         m_bank_counters.reserve(m_cfg.m_num_banks);
         for (int i = 0; i < m_cfg.m_num_banks; i++) {
-            m_bank_counters.emplace_back(i, m_cfg, m_is_abo_needed, m_abo_thresh, m_debug, m_psq_size, m_enqueuing_th, m_proactive_mitigation_th, m_targeted_ref_frequency, m_enable_opportunistic_mitigation, s_num_total_mitigations, s_num_targeted_ref, s_qprac_total_dynamic_energy, m_random_counter_initializeion, s_queue_hits, s_queue_misses, s_cache_hits, s_cache_misses, s_pb_cache_hits, s_pb_cache_misses, m_counter_cache, m_cache_size, m_cache_way, s_counter_reads, s_counter_writes, s_cached_counter_reads, s_cached_counter_writes, s_q_counter_reads, s_q_counter_writes, s_wb_counter_reads, s_wb_counter_writes);
+            m_bank_counters.emplace_back(i, m_cfg, m_is_abo_needed, m_abo_thresh, m_debug, m_psq_size, m_enqueuing_th, m_proactive_mitigation_th, m_targeted_ref_frequency, m_enable_opportunistic_mitigation, s_num_total_mitigations, s_num_targeted_ref, s_qprac_total_dynamic_energy, m_random_counter_initializeion, s_queue_hits, s_queue_misses, s_cache_hits, s_cache_misses, s_pb_cache_hits, s_pb_cache_misses, m_counter_cache, m_cache_size, m_cache_way, s_counter_reads, s_counter_writes, s_cached_counter_reads, s_cached_counter_writes, s_q_counter_reads, s_q_counter_writes, s_wb_counter_reads, s_wb_counter_writes, m_wb_th);
         }
 
         register_stat(s_num_recovery).name("prac_num_recovery");
@@ -460,7 +460,7 @@ public:
 private:
     class PerBankCounters {
     public: 
-        PerBankCounters(int bank_id, DeviceConfig& cfg, bool& is_abo_needed, int alert_thresh, bool debug, uint32_t psq_size, uint32_t enqueuing_th, uint32_t proactive_mitigation_th, uint32_t targeted_ref_frequency, bool enable_opportunistic_mitigation, uint64_t& num_total_mitigations, uint64_t& num_targeted_ref, double& qprac_total_dynamic_energy, bool random_counter_initializeion, uint64_t& queue_hits, uint64_t& queue_misses, uint64_t& cache_hits, uint64_t& cache_misses, uint64_t& pb_cache_hits, uint64_t& pb_cache_misses, Cache& counter_cache, uint64_t cache_size, uint64_t cache_way, uint64_t& counter_reads, uint64_t& counter_writes, uint64_t& cached_counter_reads, uint64_t& cached_counter_writes, uint64_t& q_counter_reads, uint64_t& q_counter_writes, uint64_t& wb_counter_reads, uint64_t& wb_counter_writes)
+        PerBankCounters(int bank_id, DeviceConfig& cfg, bool& is_abo_needed, int alert_thresh, bool debug, uint32_t psq_size, uint32_t enqueuing_th, uint32_t proactive_mitigation_th, uint32_t targeted_ref_frequency, bool enable_opportunistic_mitigation, uint64_t& num_total_mitigations, uint64_t& num_targeted_ref, double& qprac_total_dynamic_energy, bool random_counter_initializeion, uint64_t& queue_hits, uint64_t& queue_misses, uint64_t& cache_hits, uint64_t& cache_misses, uint64_t& pb_cache_hits, uint64_t& pb_cache_misses, Cache& counter_cache, uint64_t cache_size, uint64_t cache_way, uint64_t& counter_reads, uint64_t& counter_writes, uint64_t& cached_counter_reads, uint64_t& cached_counter_writes, uint64_t& q_counter_reads, uint64_t& q_counter_writes, uint64_t& wb_counter_reads, uint64_t& wb_counter_writes, uint64_t wb_th)
         : m_bank_id(bank_id), m_cfg(cfg), m_is_abo_needed(is_abo_needed),
         m_alert_thresh(alert_thresh), m_debug(debug), m_psq_size(psq_size), m_enqueuing_th(enqueuing_th), m_proactive_mitigation_th(proactive_mitigation_th),
         m_targeted_ref_frequency(targeted_ref_frequency), m_enable_opportunistic_mitigation(enable_opportunistic_mitigation), s_num_total_mitigations(num_total_mitigations), 
@@ -471,7 +471,7 @@ private:
             init_dram_params(m_cfg.m_dram);
             reset();
             m_pb_counter_cache = Cache(cache_size, 16, cache_way);
-            m_writeBuffers = std::vector<WriteBuffer>(16, WriteBuffer(16, 12));
+            m_writeBuffers = std::vector<WriteBuffer>(16, WriteBuffer(16, wb_th));
         }
 
         ~PerBankCounters() {
@@ -913,7 +913,7 @@ private:
         }
 
         void process_rfm(const Request& req) {
-            for (auto buf : m_writeBuffers)
+            for (auto &buf : m_writeBuffers)
                 if (buf.isPastThreshold())
                     buf.flush();
             process_psq_mitigation(0);

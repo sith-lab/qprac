@@ -73,13 +73,13 @@ for tick_label in tick_labels:
 # Add reference lines and labels
 # ax.axhline(y=1.0, color='r', linestyle='-', linewidth=2)
 ax.axvline(30, 0, 1, color='red', linestyle='--', linewidth=2)
-ax.text(33.5, 41.1, 'AMEAN', fontweight='bold')
+ax.text(33.5, 212.1, 'AMEAN', fontweight='bold')
 # ax.set_yticks([x / 100 for x in range(0, 101, 20)], [str(x) + "%" for x in range(0, 101, 20)])
 
 ax.set_xlabel('')
 ax.set_ylabel('ABO for Writebacks', fontsize=12)
 ax.legend(loc='upper right', bbox_to_anchor=(0.875, 1.27), ncol=5, fancybox=True, shadow=False, fontsize=12)
-ax.set_ylim(-1, 40.08)
+ax.set_ylim(-1, 210.08)
 
 # Final touches and save the plot
 plt.grid(True, linestyle=':')

@@ -48,7 +48,7 @@ targeted_ref_ratios = [1]
 
 cache_sizes = [1024]
 
-wb_buf_sizes = [4, 16, 64, 256]
+wb_buf_sizes = [6, 9, 12]
 
 params_list = [
     mitigation_list,

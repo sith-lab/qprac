@@ -14,154 +14,6 @@
 
 namespace Ramulator {
 
-class CacheLine {
-    public:
-        bool valid;
-        int tag;
-        int counter; // Counter instead of generic data
-        int bank_id;
-    
-        CacheLine() : valid(false), tag(-1), counter(0), bank_id(0) {}
-    };
-    
-    class Set {
-    public:
-        int ways;
-        std::list<std::pair<int, int>> lru_list; // Keeps track of LRU order
-        std::unordered_map<std::string, std::list<std::pair<int, int>>::iterator> lru_map; // Tag -> LRU position
-        std::vector<CacheLine> lines;
-    
-        Set(int n) : ways(n), lines(n) {}
-    
-        int access(int tag, int bank_id = 0) {
-            for (int i = 0; i < ways; i++) {
-                if (lines[i].valid && lines[i].tag == tag && lines[i].bank_id == bank_id) {
-                    updateLRU(tag, bank_id);
-                    return lines[i].counter;
-                }
-            }
-            return -1; // Indicating cache miss
-        }
-    
-        bool insert(int tag, int counter, int bank_id = 0) {
-            // If there's an empty spot, use it
-            for (int i = 0; i < ways; i++) {
-                if (!lines[i].valid) {
-                    lines[i].valid = true;
-                    lines[i].tag = tag;
-                    lines[i].counter = counter;  // Initialize counter
-                    lines[i].bank_id = bank_id;
-                    updateLRU(tag, bank_id);
-                    return true;
-                }
-            }
-    
-            // Otherwise, evict the LRU entry
-            int evict_tag = lru_list.back().first;
-            int evict_bank = lru_list.back().second;
-            lru_list.pop_back();
-            lru_map.erase(std::to_string(evict_tag) + "_" + std::to_string(evict_bank));
-    
-            // Replace the evicted entry
-            for (int i = 0; i < ways; i++) {
-                if (lines[i].tag == evict_tag && lines[i].bank_id == evict_bank) {
-                    lines[i].tag = tag;
-                    lines[i].valid = true;
-                    lines[i].counter = counter;  // Reset counter
-                    lines[i].bank_id = bank_id;
-                    break;
-                }
-            }
-    
-            updateLRU(tag, bank_id);
-            return false;
-        }
-    
-    private:
-        void updateLRU(int tag, int bank_id) {
-            // Remove if already in LRU list
-            auto key = std::to_string(tag) + "_" + std::to_string(bank_id);
-            if (lru_map.find(key) != lru_map.end()) {
-                lru_list.erase(lru_map[key]);
-            }
-            // Add to front (most recently used)
-            lru_list.push_front({tag, bank_id});
-            lru_map[key] = lru_list.begin();
-        }
-    };
-    
-    class Cache {
-    public:
-        int sets, ways;
-        std::vector<Set> cacheSets;
-        std::hash<int> h;
-        std::hash<std::string> hStr;
-        
-        Cache(){};
-        Cache(int cacheSize, int blockSize, int ways)
-            : ways(ways) {
-            sets = cacheSize / ways;
-            cacheSets = std::vector<Set>(sets, Set(ways));
-        }
-    
-        int access(int address, int bank_id = 0) {
-            int index = h(address) % sets;  // Index selection from row ID
-            int tag = address;                 // Entire row ID acts as tag
-    
-            int result = cacheSets[index].access(tag, bank_id);
-            if (result != -1) {
-                return result;
-            } else {
-                return -1; // First access initializes counter to 1
-            }
-        }
-
-        bool insert(int address, int counter, int bank_id = 0) {
-            int index = h(address) % sets;  // Index selection from row ID
-            int tag = address;                 // Entire row ID acts as tag
-            
-            return cacheSets[index].insert(tag, counter, bank_id);
-        }
-    };
-
-    class WriteBuffer {
-    public:
-        int size, flush_th;
-        
-        std::map<int, int> buffer;
-        WriteBuffer(){};
-        WriteBuffer(int size, int flush_th)
-            : size(size), flush_th(flush_th) {
-            
-        }
-
-        bool find(int row_addr)
-        {
-            return buffer.find(row_addr) != buffer.end();
-        }
-
-        bool isPastThreshold()
-        {
-            return buffer.size() >= flush_th;
-        }
-
-        /* Return true when past threshold */
-        bool insert(int row_addr, int val)
-        {
-            int p_size = buffer.size();
-            buffer[row_addr] = val;
-            if (p_size < flush_th && buffer.size() == flush_th)
-                return true;
-            return false;
-        }
-
-        void flush()
-        {
-            buffer.clear();
-        }
-    };
-
-
 class QPRAC : public IControllerPlugin, public Implementation, public IPRAC {
     RAMULATOR_REGISTER_IMPLEMENTATION(IControllerPlugin, QPRAC, "QPRAC", "PRAC Inplementation with Priority Service Queue.")
 
@@ -236,8 +88,11 @@ private:
     uint64_t s_q_counter_writes = 0;
     uint64_t s_wb_counter_reads = 0;
     uint64_t s_wb_counter_writes = 0;
+    uint64_t s_wb_abo = 0;
 
-    Cache m_counter_cache;
+    uint64_t s_rwb_counter_reads = 0;
+    uint64_t s_rwb_counter_writes = 0;
+
     uint32_t m_cache_size = 0;
     uint32_t m_cache_way = 0;
     uint32_t m_wb_th = 0;
@@ -259,7 +114,6 @@ public:
 
         m_cache_size = param<uint32_t>("cache_size").default_val(64);
         m_cache_way = param<uint32_t>("cache_way").default_val(4);
-        m_counter_cache = Cache(m_cache_size, 16, 4);
 
         m_wb_th = param<uint32_t>("wb_th").default_val(16);
     
@@ -297,10 +151,13 @@ public:
         register_stat(s_q_counter_writes).name("qprac_q_counter_writes");
         register_stat(s_wb_counter_reads).name("qprac_wb_counter_reads");
         register_stat(s_wb_counter_writes).name("qprac_wb_counter_writes");
+        register_stat(s_wb_abo).name("qprac_wb_abo");
+        register_stat(s_rwb_counter_reads).name("qprac_rwb_counter_reads");
+        register_stat(s_rwb_counter_writes).name("qprac_rwb_counter_writes");
 
         m_bank_counters.reserve(m_cfg.m_num_banks);
         for (int i = 0; i < m_cfg.m_num_banks; i++) {
-            m_bank_counters.emplace_back(i, m_cfg, m_is_abo_needed, m_abo_thresh, m_debug, m_psq_size, m_enqueuing_th, m_proactive_mitigation_th, m_targeted_ref_frequency, m_enable_opportunistic_mitigation, s_num_total_mitigations, s_num_targeted_ref, s_qprac_total_dynamic_energy, m_random_counter_initializeion, s_queue_hits, s_queue_misses, s_cache_hits, s_cache_misses, s_pb_cache_hits, s_pb_cache_misses, m_counter_cache, m_cache_size, m_cache_way, s_counter_reads, s_counter_writes, s_cached_counter_reads, s_cached_counter_writes, s_q_counter_reads, s_q_counter_writes, s_wb_counter_reads, s_wb_counter_writes, m_wb_th);
+            m_bank_counters.emplace_back(i, m_cfg, m_is_abo_needed, m_abo_thresh, m_debug, m_psq_size, m_enqueuing_th, m_proactive_mitigation_th, m_targeted_ref_frequency, m_enable_opportunistic_mitigation, s_num_total_mitigations, s_num_targeted_ref, s_qprac_total_dynamic_energy, m_random_counter_initializeion, s_queue_hits, s_queue_misses, s_cache_hits, s_cache_misses, s_pb_cache_hits, s_pb_cache_misses, m_cache_size, m_cache_way, s_counter_reads, s_counter_writes, s_cached_counter_reads, s_cached_counter_writes, s_q_counter_reads, s_q_counter_writes, s_wb_counter_reads, s_wb_counter_writes, s_wb_abo, m_wb_th, s_rwb_counter_reads, s_rwb_counter_writes);
         }
 
         register_stat(s_num_recovery).name("prac_num_recovery");
@@ -460,18 +317,20 @@ public:
 private:
     class PerBankCounters {
     public: 
-        PerBankCounters(int bank_id, DeviceConfig& cfg, bool& is_abo_needed, int alert_thresh, bool debug, uint32_t psq_size, uint32_t enqueuing_th, uint32_t proactive_mitigation_th, uint32_t targeted_ref_frequency, bool enable_opportunistic_mitigation, uint64_t& num_total_mitigations, uint64_t& num_targeted_ref, double& qprac_total_dynamic_energy, bool random_counter_initializeion, uint64_t& queue_hits, uint64_t& queue_misses, uint64_t& cache_hits, uint64_t& cache_misses, uint64_t& pb_cache_hits, uint64_t& pb_cache_misses, Cache& counter_cache, uint64_t cache_size, uint64_t cache_way, uint64_t& counter_reads, uint64_t& counter_writes, uint64_t& cached_counter_reads, uint64_t& cached_counter_writes, uint64_t& q_counter_reads, uint64_t& q_counter_writes, uint64_t& wb_counter_reads, uint64_t& wb_counter_writes, uint64_t wb_th)
+        PerBankCounters(int bank_id, DeviceConfig& cfg, bool& is_abo_needed, int alert_thresh, bool debug, uint32_t psq_size, uint32_t enqueuing_th, uint32_t proactive_mitigation_th, uint32_t targeted_ref_frequency, bool enable_opportunistic_mitigation, uint64_t& num_total_mitigations, uint64_t& num_targeted_ref, double& qprac_total_dynamic_energy, bool random_counter_initializeion, uint64_t& queue_hits, uint64_t& queue_misses, uint64_t& cache_hits, uint64_t& cache_misses, uint64_t& pb_cache_hits, uint64_t& pb_cache_misses, uint64_t cache_size, uint64_t cache_way, uint64_t& counter_reads, uint64_t& counter_writes, uint64_t& cached_counter_reads, uint64_t& cached_counter_writes, uint64_t& q_counter_reads, uint64_t& q_counter_writes, uint64_t& wb_counter_reads, uint64_t& wb_counter_writes, uint64_t& wb_abo, uint64_t wb_th, uint64_t& rwb_counter_reads, uint64_t& rwb_counter_writes)
         : m_bank_id(bank_id), m_cfg(cfg), m_is_abo_needed(is_abo_needed),
         m_alert_thresh(alert_thresh), m_debug(debug), m_psq_size(psq_size), m_enqueuing_th(enqueuing_th), m_proactive_mitigation_th(proactive_mitigation_th),
         m_targeted_ref_frequency(targeted_ref_frequency), m_enable_opportunistic_mitigation(enable_opportunistic_mitigation), s_num_total_mitigations(num_total_mitigations), 
         s_num_targeted_ref(num_targeted_ref), s_qprac_total_dynamic_energy(qprac_total_dynamic_energy), m_random_counter_initializeion(random_counter_initializeion),
-        s_queue_hits(queue_hits), s_queue_misses(queue_misses), s_cache_hits(cache_hits), s_cache_misses(cache_misses), s_pb_cache_hits(pb_cache_hits), s_pb_cache_misses(pb_cache_misses), m_counter_cache(counter_cache), m_cache_size(cache_size), 
+        s_queue_hits(queue_hits), s_queue_misses(queue_misses), s_cache_hits(cache_hits), s_cache_misses(cache_misses), s_pb_cache_hits(pb_cache_hits), s_pb_cache_misses(pb_cache_misses), m_cache_size(cache_size), 
         s_counter_reads(counter_reads), s_counter_writes(counter_writes), s_cached_counter_reads(cached_counter_reads), s_cached_counter_writes(cached_counter_writes),
-        s_q_counter_reads(q_counter_reads), s_q_counter_writes(q_counter_writes), s_wb_counter_reads(wb_counter_reads), s_wb_counter_writes(wb_counter_writes){
+        s_q_counter_reads(q_counter_reads), s_q_counter_writes(q_counter_writes), s_wb_counter_reads(wb_counter_reads), s_wb_abo(wb_abo),
+        s_wb_counter_writes(wb_counter_writes), s_rwb_counter_reads(rwb_counter_reads), s_rwb_counter_writes(rwb_counter_writes){
             init_dram_params(m_cfg.m_dram);
             reset();
             m_pb_counter_cache = Cache(cache_size, 16, cache_way);
-            m_writeBuffers = std::vector<WriteBuffer>(16, WriteBuffer(16, wb_th));
+            m_writeBuffers = std::vector<WriteBuffer>(16, WriteBuffer(16, wb_th, wb_th / 2));
+            m_readBuffers = std::vector<ReadBuffer>(16, ReadBuffer(wb_th / 2));
         }
 
         ~PerBankCounters() {
@@ -519,6 +378,195 @@ private:
         }
 
     private:
+    class CacheLine {
+        public:
+            bool valid;
+            int tag;
+            int counter; // Counter instead of generic data
+            int bank_id;
+        
+            CacheLine() : valid(false), tag(-1), counter(0), bank_id(0) {}
+        };
+        
+        class Set {
+        public:
+            int ways;
+            std::list<std::pair<int, int>> lru_list; // Keeps track of LRU order
+            std::unordered_map<std::string, std::list<std::pair<int, int>>::iterator> lru_map; // Tag -> LRU position
+            std::vector<CacheLine> lines;
+        
+            Set(int n) : ways(n), lines(n) {}
+        
+            int access(int tag, int bank_id = 0) {
+                for (int i = 0; i < ways; i++) {
+                    if (lines[i].valid && lines[i].tag == tag && lines[i].bank_id == bank_id) {
+                        updateLRU(tag, bank_id);
+                        return lines[i].counter;
+                    }
+                }
+                return -1; // Indicating cache miss
+            }
+        
+            int insert(int tag, int counter, int bank_id = 0) {
+                // If there's an empty spot, use it
+                for (int i = 0; i < ways; i++) {
+                    if (!lines[i].valid) {
+                        lines[i].valid = true;
+                        lines[i].tag = tag;
+                        lines[i].counter = counter;  // Initialize counter
+                        lines[i].bank_id = bank_id;
+                        updateLRU(tag, bank_id);
+                        return -1;
+                    }
+                }
+        
+                // Otherwise, evict the LRU entry
+                int evict_tag = lru_list.back().first;
+                int evict_bank = lru_list.back().second;
+                lru_list.pop_back();
+                lru_map.erase(std::to_string(evict_tag) + "_" + std::to_string(evict_bank));
+        
+                // Replace the evicted entry
+                for (int i = 0; i < ways; i++) {
+                    if (lines[i].tag == evict_tag && lines[i].bank_id == evict_bank) {
+                        lines[i].tag = tag;
+                        lines[i].valid = true;
+                        lines[i].counter = counter;  // Reset counter
+                        lines[i].bank_id = bank_id;
+                        break;
+                    }
+                }
+        
+                updateLRU(tag, bank_id);
+                return tag;
+            }
+        
+        private:
+            void updateLRU(int tag, int bank_id) {
+                // Remove if already in LRU list
+                auto key = std::to_string(tag) + "_" + std::to_string(bank_id);
+                if (lru_map.find(key) != lru_map.end()) {
+                    lru_list.erase(lru_map[key]);
+                }
+                // Add to front (most recently used)
+                lru_list.push_front({tag, bank_id});
+                lru_map[key] = lru_list.begin();
+            }
+        };
+        
+        class Cache {
+        public:
+            int sets, ways;
+            std::vector<Set> cacheSets;
+            std::hash<int> h;
+            std::hash<std::string> hStr;
+            
+            Cache(){};
+            Cache(int cacheSize, int blockSize, int ways)
+                : ways(ways) {
+                sets = cacheSize / ways;
+                cacheSets = std::vector<Set>(sets, Set(ways));
+            }
+        
+            int access(int address, int bank_id = 0) {
+                int index = h(address) % sets;  // Index selection from row ID
+                int tag = address;                 // Entire row ID acts as tag
+        
+                int result = cacheSets[index].access(tag, bank_id);
+                if (result != -1) {
+                    return result;
+                } else {
+                    return -1; // First access initializes counter to 1
+                }
+            }
+    
+            int insert(int address, int counter, int bank_id = 0) {
+                int index = h(address) % sets;  // Index selection from row ID
+                int tag = address;                 // Entire row ID acts as tag
+                
+                return cacheSets[index].insert(tag, counter, bank_id);
+            }
+        };
+    
+        class WriteBuffer {
+        public:
+            int size, flush_th, hitflush_th;
+            
+            std::map<int, int> buffer;
+            WriteBuffer(){};
+            WriteBuffer(int size, int flush_th, int hitflush_th)
+                : size(size), flush_th(flush_th), hitflush_th(hitflush_th) {
+                
+            }
+    
+            bool find(int row_addr)
+            {
+                return buffer.find(row_addr) != buffer.end();
+            }
+    
+            bool isPastThreshold()
+            {
+                return buffer.size() >= flush_th;
+            }
+
+            bool isPastHitFlushThreshold()
+            {
+                return buffer.size() >= hitflush_th;
+            }
+    
+            /* Return true when past ABO threshold */
+            bool insert(int row_addr, int val)
+            {
+                int p_size = buffer.size();
+                buffer[row_addr] = val;
+                if (p_size < flush_th && buffer.size() == flush_th)
+                    return true;
+                return false;
+            }
+    
+            int flush()
+            {
+                int p_size = buffer.size();
+                buffer.clear();
+                return p_size;
+            }
+        };
+
+        class ReadBuffer {
+            public:
+                int size;
+                
+                std::vector<int> buffer;
+                ReadBuffer(){};
+                ReadBuffer(int size)
+                    : size(size) {
+                    
+                }
+        
+                bool find(int row_addr)
+                {
+                    return std::find(buffer.begin(), buffer.end(), row_addr) != buffer.end();
+                }
+        
+                bool isFull()
+                {
+                    return buffer.size() == size;
+                }
+        
+                /* Return true when past ABO threshold */
+                void insert(int row_addr)
+                {
+                    buffer.push_back(row_addr);
+                }
+        
+                int flush()
+                {
+                    int p_size = buffer.size();
+                    buffer.clear();
+                    return p_size;
+                }
+            };
+
         struct CommandHandler {
             std::string cmd_name;
             std::function<void(const Request&)> handler;
@@ -561,7 +609,6 @@ private:
 
         uint64_t& s_pb_cache_hits;
         uint64_t& s_pb_cache_misses;
-        Cache& m_counter_cache;
         Cache m_pb_counter_cache;
 
         uint64_t m_cache_size;
@@ -576,14 +623,63 @@ private:
         uint64_t& s_q_counter_writes;
         uint64_t& s_wb_counter_reads;
         uint64_t& s_wb_counter_writes;
+        uint64_t& s_wb_abo;
+        uint64_t& s_rwb_counter_reads;
+        uint64_t& s_rwb_counter_writes;
 
         std::vector<WriteBuffer> m_writeBuffers;
+        std::vector<ReadBuffer> m_readBuffers;
 
         // For power related stats
         uint64_t& s_num_total_mitigations;
         double& s_qprac_total_dynamic_energy;
         double qprac_per_bank_access_energy = 0.000236893; //nJ -- Based on Synopsys DC with 45nm Nangate Open Cell Library
-        
+
+        int tryFlushMaxWB()
+        {
+            auto maxBuf = std::max_element(m_writeBuffers.begin(), m_writeBuffers.end(), 
+                [](WriteBuffer &buf_a, WriteBuffer &buf_b){
+                    return buf_a.buffer.size() < buf_b.buffer.size();
+                });
+
+            if (maxBuf->isPastHitFlushThreshold())
+            {
+                maxBuf->flush();
+                return std::distance(m_writeBuffers.begin(), maxBuf);
+            }
+            return -1;
+        }
+
+        bool tryFlushRB(int row_addr)
+        {
+            std::vector<int> rows;
+            for(auto const& item: m_readBuffers[getCounterRow(row_addr)].buffer)
+                rows.push_back(item);
+            
+            for (auto item : rows)
+                update_psq(item, true);
+            m_readBuffers[getCounterRow(row_addr)].flush();
+            return rows.size() > 0;
+        }
+
+        void handleType3()
+        {
+            for(auto const& item : m_psq)
+            {
+                int row_addr = item.first;
+                if (m_counters[row_addr] >= m_alert_thresh) {
+                    // PSQ Counter should be the same as in-DRAM counter
+                    if (m_counters[row_addr] != m_psq[row_addr]){
+                        std::printf("[TOP VICTIM UPDATE][ERROR!] PSQ counter: %lu, and In-DRAM counter: %lu, Have Different Values!\n", m_counters[row_addr], m_psq[row_addr]);
+                        assert(m_counters[row_addr] == m_psq[row_addr]);
+                    }
+                    m_critical_rows[row_addr] = m_counters[row_addr];
+                    m_is_abo_needed = true;
+                }
+            }
+            
+        }
+
         int getCounterRow(int row_addr)
         {
             return row_addr / (8 * 1024);
@@ -627,17 +723,18 @@ private:
                     m_critical_rows.erase(min_entry->first);
                 }
                 
+                int cache_evict_tag;
                 if (m_pb_counter_cache.access(min_entry->first, m_bank_id) == -1 && 
-                    !m_pb_counter_cache.insert(min_entry->first, m_counters[min_entry->first] , m_bank_id))
+                    (cache_evict_tag = m_pb_counter_cache.insert(min_entry->first, m_counters[min_entry->first] , m_bank_id)) != -1)
                 {
                     // We couldn't save a writeback to the DRAM
                     s_cached_counter_writes++;
-                    if (m_writeBuffers[getCounterRow(min_entry->first)].insert(min_entry->first,m_counters[min_entry->first]))
+                    if (m_writeBuffers[getCounterRow(cache_evict_tag)].insert(cache_evict_tag ,m_counters[cache_evict_tag]))
                     {   
-                        m_is_abo_needed = true;
-
                         // We record the writeback flush from ABO as one write here.
-                        s_wb_counter_writes++;
+                        if (!m_is_abo_needed)
+                            s_wb_abo++;
+                        m_is_abo_needed = true;
                     }
                     // std::cerr << m_writeBuffers[getCounterRow(min_entry->first)].buffer.size() << '\n';
                 }
@@ -654,11 +751,20 @@ private:
         // Return values:
         // 0: If it's internally incremented, 1: If it's inserted w/o replacement 
         // -1: If it's not inserted, 2: If it's inserted w/ replacement
-        int update_psq(auto row_addr) {
+        // 3: if burst happen, have to check all element in PSQ.
+        int update_psq(auto row_addr, bool isRecurse = false) {
             // 1. Check if entry is already in the PSQ
+            int buf_id;
+            int ret = -1;
             if (m_psq.find(row_addr) != m_psq.end()) {
                 s_queue_hits++;
                 m_psq[row_addr]++;
+                if (!isRecurse && (buf_id = tryFlushMaxWB()) != -1)
+                {
+                    s_rwb_counter_writes++;
+                    s_wb_counter_writes++;
+                    return tryFlushRB(buf_id) ? 3 : 0;
+                }
                 return 0;
             }
             else{
@@ -666,8 +772,17 @@ private:
                 s_queue_misses++;
 
                 // Counter cache hits
+                int cache_evict_tag;
                 if (m_pb_counter_cache.access(row_addr, m_bank_id) != -1)
+                {
                     s_pb_cache_hits++;
+                    if (!isRecurse && (buf_id = tryFlushMaxWB()) != -1)
+                    {
+                        s_rwb_counter_writes++;
+                        s_wb_counter_writes++;
+                        ret = tryFlushRB(buf_id) ? 3 : -1;
+                    }
+                }
                 else {
 
                     // Given you found the entry in the writeback
@@ -675,18 +790,36 @@ private:
                     {
                         // Record a read. 
                         s_wb_counter_reads++;
-                        m_writeBuffers[getCounterRow(row_addr)].flush();
+                        
+                        if (!isRecurse)
+                        {
+                            m_readBuffers[getCounterRow(row_addr)].insert(row_addr);
+                            if (m_readBuffers[getCounterRow(row_addr)].isFull())
+                            {
+                                s_rwb_counter_reads++;
+                                m_writeBuffers[getCounterRow(row_addr)].flush();
+                                return tryFlushRB(row_addr) ? 3 : -1;
+                            }
+                            else
+                                return -1;
+                        }
+                    }
+                    else if (!isRecurse && (buf_id = tryFlushMaxWB()) != -1)
+                    {
+                        s_wb_counter_writes++;
+                        s_rwb_counter_writes++;
+                        ret = tryFlushRB(buf_id) ? 3 : -1;      
                     }
 
-                    if (!m_pb_counter_cache.insert(row_addr, m_counters[row_addr] , m_bank_id))
+                    if ((cache_evict_tag = m_pb_counter_cache.insert(row_addr, m_counters[row_addr] , m_bank_id)) != -1)
                     {
                         s_cached_counter_writes++;
-                        if (m_writeBuffers[getCounterRow(row_addr)].insert(row_addr,m_counters[row_addr]))
+                        if (m_writeBuffers[getCounterRow(cache_evict_tag)].insert(row_addr,m_counters[cache_evict_tag]))
                         {
-                            m_is_abo_needed = true;
-
                             // We record the writeback flush from ABO as one write here.
-                            s_wb_counter_writes++;
+                            if (!m_is_abo_needed)
+                                s_wb_abo++;
+                            m_is_abo_needed = true;
                         }
                     }
                     s_pb_cache_misses++;
@@ -695,7 +828,7 @@ private:
 
                 // 2.1 Check if counter reaches enqueueing threshold
                 if (m_counters[row_addr] < m_enqueuing_th) {
-                    return - 1;
+                    return ret;
                 }
                 else {
                     //2.2 Insert or replace the entry
@@ -704,14 +837,14 @@ private:
                     if(!is_psq_full()) {
                         //2.2.2 Insert the entry into the empty space
                         m_psq[row_addr] = m_counters[row_addr];
-                        return 1;
+                        return ret == -1 ? 1 : ret;
                     }
                     else {
                         //2.2.3 Replace the entry
                         if(replace_psq_entry(row_addr))
-                            return 2;
+                            return ret == -1 ? 2 : ret;
                         else
-                            return -1;
+                            return ret;
                     }
                 }
             }
@@ -750,6 +883,10 @@ private:
                             m_is_abo_needed = true;
                         }
                     }
+                    else if (update_type == 3)
+                    {
+                        handleType3();
+                    }
                 }
             }
             //2. Update bottom counter values
@@ -782,6 +919,10 @@ private:
                             m_critical_rows[bottom_victim] = m_counters[bottom_victim];
                             m_is_abo_needed = true;
                         }
+                    }
+                    else if (update_type == 3)
+                    {
+                        handleType3();
                     }
                 }
             }
@@ -818,17 +959,18 @@ private:
             row_addr = max_entry->first;
             m_critical_rows.erase(max_entry->first);
             
+            int cache_evict_tag;
             if (m_pb_counter_cache.access(max_entry->first, m_bank_id) == -1 && 
-                !m_pb_counter_cache.insert(max_entry->first, m_counters[max_entry->first] , m_bank_id))
+                (cache_evict_tag = m_pb_counter_cache.insert(max_entry->first, m_counters[max_entry->first] , m_bank_id)) != -1)
                 {
                     // We couldn't save a writeback to the DRAM
                     s_cached_counter_writes++;
-                    if (m_writeBuffers[getCounterRow(max_entry->first)].insert(max_entry->first,m_counters[max_entry->first]))
+                    if (m_writeBuffers[getCounterRow(cache_evict_tag)].insert(cache_evict_tag, m_counters[cache_evict_tag]))
                     {
-                        m_is_abo_needed = true;
-
                         // We record the writeback flush from ABO as one write here.
-                        s_wb_counter_writes++;
+                        if (!m_is_abo_needed)
+                            s_wb_abo++;
+                        m_is_abo_needed = true;
                     }
                 }
             m_psq.erase(max_entry->first);
@@ -906,16 +1048,19 @@ private:
                     m_is_abo_needed = true;
                 }
             }
+            else if (update_type == 3)
+                    {
+                        handleType3();
+                    }
             else {
                 std::printf("[ERROR!] PSQ Update Returns Wrong Value!\n");
-                assert(update_type <= 2);
+                assert(update_type <= 3);
             }
         }
 
         void process_rfm(const Request& req) {
-            for (auto &buf : m_writeBuffers)
-                if (buf.isPastThreshold())
-                    buf.flush();
+            tryFlushMaxWB();
+                    
             process_psq_mitigation(0);
         }
     };  // class PerBankCounters
